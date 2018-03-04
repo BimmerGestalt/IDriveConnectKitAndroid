@@ -19,6 +19,10 @@ before_script:
   # install Mini Connected
   - wget --inet4-only https://hufman.me/MINI_Connected_Classic_v1.1.3_apkpure.com.apk -O connected.apk
   - adb install connected.apk
+  - pip install --user xunitparser
 
 script:
-  - bash ./gradlew build connectedCheck --info
+  - bash ./gradlew build connectedCheck
+
+after_script:
+  - python buildtools/xunit_summary.py build/outputs/androidTest-results/connected/*.xml
