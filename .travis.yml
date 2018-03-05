@@ -22,7 +22,10 @@ before_script:
   - pip install --user xunitparser
 
 script:
-  - bash ./gradlew build connectedCheck
+  - echo -en 'travis_fold:start:script.gradle_build\\r'
+  - bash ./gradlew build
+  - echo -en 'travis_fold:end:script.gradle_build\\r'
+  - bash ./gradlew connectedCheck
 
 after_script:
   - python buildtools/xunit_summary.py build/outputs/androidTest-results/connected/*.xml
