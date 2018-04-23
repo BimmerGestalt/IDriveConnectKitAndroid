@@ -7,7 +7,6 @@ import junit.framework.Assert.fail
 import org.awaitility.Awaitility.await
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.util.concurrent.Callable
 
 @RunWith(AndroidJUnit4::class)
 class TestSecurityService {

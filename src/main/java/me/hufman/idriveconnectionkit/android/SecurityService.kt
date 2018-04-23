@@ -9,9 +9,9 @@ import android.util.Log
 import com.bmwgroup.connected.internal.security.ICarSecurityService
 
 
-const val TAG = "IDriveSecurityService"
-
 object SecurityService {
+	const val TAG = "IDriveSecurityService"
+
 	val knownSecurityServices = HashMap<String, String>()
 	val securityConnections = HashMap<String, SecurityConnectionListener>()
 	val activeSecurityConnections = HashMap<String, ICarSecurityService>()
