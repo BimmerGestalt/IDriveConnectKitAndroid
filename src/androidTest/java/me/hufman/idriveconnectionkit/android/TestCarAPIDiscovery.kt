@@ -7,17 +7,28 @@ import com.bmwgroup.connected.car.app.BrandType
 import junit.framework.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.concurrent.Semaphore
+import java.util.concurrent.TimeUnit
 
 @RunWith(AndroidJUnit4::class)
 class TestCarAPIDiscovery {
 
 	val TAG = "TestCarAPIDiscovery"
 
+	private val lock = Semaphore(0) // wait for the CarAPI to discover a specific app
+	inner class WaitForCarAPI(val appId: String): CarAPIDiscovery.DiscoveryCallback {
+		override fun discovered(app: CarAPIClient) {
+			if (app.id == appId)
+				lock.release()
+		}
+	}
+
 	@Test
 	fun startDiscovery() {
 		val appContext = InstrumentationRegistry.getTargetContext()
-		CarAPIDiscovery.discoverApps(appContext, null)
-		Thread.sleep(2000)
+
+		CarAPIDiscovery.discoverApps(appContext, WaitForCarAPI("com.clearchannel.iheartradio.connect"))
+		lock.tryAcquire(1,60000, TimeUnit.MILLISECONDS)    // wait up to 60s for the CarAPI app to respond
 		CarAPIDiscovery.cancelDiscovery()
 		Log.i(TAG, "Discovered " + CarAPIDiscovery.discoveredApps.size + " Car API apps")
 		CarAPIDiscovery.discoveredApps.entries.forEach {
