@@ -29,7 +29,11 @@ script:
   - echo -en 'travis_fold:start:script.gradle_build\\r'
   - bash ./gradlew build
   - echo -en 'travis_fold:end:script.gradle_build\\r'
+  - adb logcat -c
+  - echo -en 'travis_fold:start:script.gradle_connectedCheck\\r'
   - bash ./gradlew connectedCheck
+  - echo -en 'travis_fold:end:script.gradle_connectedCheck\\r'
+  - python buildtools/xunit_summary.py build/outputs/androidTest-results/connected/*.xml
 
 after_script:
-  - python buildtools/xunit_summary.py build/outputs/androidTest-results/connected/*.xml
+  - adb logcat -d
