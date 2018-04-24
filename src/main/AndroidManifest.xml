@@ -1,2 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="me.hufman.idriveconnectionkit.android" />
+    package="me.hufman.idriveconnectionkit.android">
+
+<application>
+    <receiver android:name=".IDriveConnectionListener">
+        <intent-filter>
+            <action android:name="com.bmwgroup.connected.accessory.ACTION_CAR_ACCESSORY_ATTACHED" />
+            <action android:name="com.bmwgroup.connected.accessory.ACTION_CAR_ACCESSORY_DETACHED" />
+        </intent-filter>
+    </receiver>
+</application>
+</manifest>
