@@ -28,7 +28,7 @@ class TestCarAPIDiscovery {
 		val appContext = InstrumentationRegistry.getTargetContext()
 
 		CarAPIDiscovery.discoverApps(appContext, WaitForCarAPI("com.clearchannel.iheartradio.connect"))
-		lock.tryAcquire(1,60000, TimeUnit.MILLISECONDS)    // wait up to 60s for the CarAPI app to respond
+		lock.tryAcquire(60000, TimeUnit.MILLISECONDS)    // wait up to 60s for the CarAPI app to respond
 		CarAPIDiscovery.cancelDiscovery()
 		Log.i(TAG, "Discovered " + CarAPIDiscovery.discoveredApps.size + " Car API apps")
 		CarAPIDiscovery.discoveredApps.entries.forEach {

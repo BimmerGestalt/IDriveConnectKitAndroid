@@ -83,7 +83,7 @@ class CarAPIClient(val id: String,
 			                    title = intent.getStringExtra("EXTRA_APPLICATION_TITLE"),
 			                    category = intent.getStringExtra("EXTRA_APPLICATION_CATEGORY"),
 			                    version = intent.getStringExtra("EXTRA_APPLICATION_VERSION"),
-					            brandType = intent.getSerializableExtra("EXTRA_APPLICATION_BRAND") as BrandType,
+			                    brandType = intent.getSerializableExtra("EXTRA_APPLICATION_BRAND") as BrandType,
 			                    connectIntentName = intent.getStringExtra("EXTRA_APPLICATION_CONNECT_RECEIVER_ACTION"),
 			                    disconnectIntentName = intent.getStringExtra("EXTRA_APPLICATION_DISCONNECT_RECEIVER_ACTION"),
 			                    appIcon = intent.getByteArrayExtra("EXTRA_APPLICATION_APP_ICON"))
