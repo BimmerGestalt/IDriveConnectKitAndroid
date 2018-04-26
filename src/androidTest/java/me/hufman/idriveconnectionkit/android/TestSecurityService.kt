@@ -74,7 +74,7 @@ class TestSecurityService {
 		// load up app cert
 		CarAPIDiscovery.discoverApps(appContext, TestCarAPIDiscovery.WaitForCarAPI("com.clearchannel.iheartradio.connect", lock))
 		lock.tryAcquire(60000, TimeUnit.MILLISECONDS)    // wait up to 60s for the CarAPI app to respond
-		CarAPIDiscovery.cancelDiscovery()
+		CarAPIDiscovery.cancelDiscovery(appContext)
 		assertTrue(CarAPIDiscovery.discoveredApps.containsKey("com.clearchannel.iheartradio.connect"))
 		val app = CarAPIDiscovery.discoveredApps["com.clearchannel.iheartradio.connect"] as CarAPIClient
 		val appCert = TestCarAPIDiscovery.loadInputStream(app.getAppCertificate(appContext)?.createInputStream() as InputStream)

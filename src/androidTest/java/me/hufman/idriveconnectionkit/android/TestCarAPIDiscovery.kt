@@ -51,7 +51,7 @@ class TestCarAPIDiscovery {
 
 		CarAPIDiscovery.discoverApps(appContext, WaitForCarAPI("com.clearchannel.iheartradio.connect", lock))
 		lock.tryAcquire(60000, TimeUnit.MILLISECONDS)    // wait up to 60s for the CarAPI app to respond
-		CarAPIDiscovery.cancelDiscovery()
+		CarAPIDiscovery.cancelDiscovery(appContext)
 		Log.i(TAG, "Discovered " + CarAPIDiscovery.discoveredApps.size + " Car API apps")
 		CarAPIDiscovery.discoveredApps.entries.forEach {
 			Log.i(TAG, it.value.toString())

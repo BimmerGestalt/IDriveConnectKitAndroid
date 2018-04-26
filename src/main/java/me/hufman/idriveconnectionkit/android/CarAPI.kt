@@ -17,7 +17,7 @@ object CarAPIDiscovery {
 
 	var broadcastReceiver: DiscoveryReceiver? = null
 	val discoveredApps: MutableMap<String, CarAPIClient> = HashMap()
-	class DiscoveryReceiver(val context: Context, val callback: DiscoveryCallback?): BroadcastReceiver() {
+	class DiscoveryReceiver(val callback: DiscoveryCallback?): BroadcastReceiver() {
 		val INTENT_NAME = "com.bmwgroup.connected.app.action.ACTION_CAR_APPLICATION_REGISTERING"
 		fun intentFilter(): IntentFilter {
 			return IntentFilter(INTENT_NAME)
@@ -46,7 +46,7 @@ object CarAPIDiscovery {
 	fun discoverApps(context: Context, callback: DiscoveryCallback?) {
 		// register to listen for BMW Connected Ready announcements
 		if (broadcastReceiver == null) {
-			broadcastReceiver = DiscoveryReceiver(context, callback)
+			broadcastReceiver = DiscoveryReceiver(callback)
 			context.registerReceiver(broadcastReceiver, broadcastReceiver!!.intentFilter())
 		}
 
@@ -60,9 +60,9 @@ object CarAPIDiscovery {
 	/**
 	 * Cancels app discovery
 	 */
-	fun cancelDiscovery() {
+	fun cancelDiscovery(context: Context? = null) {
 		if (broadcastReceiver != null) {
-			broadcastReceiver?.context?.unregisterReceiver(broadcastReceiver)
+			context?.unregisterReceiver(broadcastReceiver)
 			broadcastReceiver = null
 		}
 	}

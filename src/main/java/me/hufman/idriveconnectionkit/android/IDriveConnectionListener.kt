@@ -10,12 +10,12 @@ class IDriveConnectionListener : BroadcastReceiver() {
 
 	/**
 	 * The current connection status is available as static members
-	 * @param isConnected indicates whether the car is currently connected
-	 * @param brand which type of car is connected: bmw bmwi mini
-	 * @param host what host to use to reach the Etch service, usually 127.0.0.1
-	 * @param port which port on that host to reach the Etch service
-	 * @param instanceId is an internal identifier
-	 * @param callback is called after the connection state changes
+	 * isConnected indicates whether the car is currently connected
+	 * brand is which type of car is connected: bmw bmwi mini
+	 * host is what host to use to reach the Etch service, usually 127.0.0.1
+	 * port is which port on that host to reach the Etch service
+	 * instanceId is an internal identifier
+	 * callback is called after the connection state changes
 	 */
 	companion object {
 		var isConnected: Boolean = false
