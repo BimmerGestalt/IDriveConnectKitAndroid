@@ -7,16 +7,38 @@ import com.bmwgroup.connected.car.app.BrandType
 import junit.framework.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.io.InputStream
+import java.util.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 
 @RunWith(AndroidJUnit4::class)
 class TestCarAPIDiscovery {
 
-	val TAG = "TestCarAPIDiscovery"
+	companion object {
+		val TAG = "TestCarAPIDiscovery"
+		fun loadInputStream(input: InputStream, maxSize: Long = 5000000): ByteArray {
+			val writer = ByteArrayOutputStream()
+			val data = ByteArray(4096)
+			try {
+				var read = input.read(data, 0, data.size)
+				while (read > -1 && (maxSize == 0L || writer.size() < maxSize)) {
+					writer.write(data, 0, read)
+					read = input.read(data, 0, data.size)
+				}
+				return writer.toByteArray()
+			} catch (e: IOException) {
+				Log.e(TAG, "Failed to load resource")
+				return ByteArray(0)
+			}
+
+		}
+	}
 
 	private val lock = Semaphore(0) // wait for the CarAPI to discover a specific app
-	inner class WaitForCarAPI(val appId: String): CarAPIDiscovery.DiscoveryCallback {
+	class WaitForCarAPI(val appId: String, val lock: Semaphore): CarAPIDiscovery.DiscoveryCallback {
 		override fun discovered(app: CarAPIClient) {
 			if (app.id == appId)
 				lock.release()
@@ -27,7 +49,7 @@ class TestCarAPIDiscovery {
 	fun startDiscovery() {
 		val appContext = InstrumentationRegistry.getTargetContext()
 
-		CarAPIDiscovery.discoverApps(appContext, WaitForCarAPI("com.clearchannel.iheartradio.connect"))
+		CarAPIDiscovery.discoverApps(appContext, WaitForCarAPI("com.clearchannel.iheartradio.connect", lock))
 		lock.tryAcquire(60000, TimeUnit.MILLISECONDS)    // wait up to 60s for the CarAPI app to respond
 		CarAPIDiscovery.cancelDiscovery()
 		Log.i(TAG, "Discovered " + CarAPIDiscovery.discoveredApps.size + " Car API apps")
@@ -51,5 +73,18 @@ class TestCarAPIDiscovery {
 		assertNull(app.getUiDescription(appContext))
 		assertNotNull(app.getTextsDB(appContext, "bmw"))
 		assertNotNull(app.getImagesDB(appContext, "bmw"))
+
+		val certIS = app.getAppCertificate(appContext)?.createInputStream()
+		val cert = loadInputStream(certIS as InputStream)
+		assertEquals(6299, cert.size)
+
+		val parsedCerts = CertMangling.loadCerts(cert)
+		assertNotNull(parsedCerts)
+		val certNames = parsedCerts?.mapNotNull {
+			CertMangling.getCN(it)
+		} ?: LinkedList()
+		assertEquals(3, certNames.size)
+		Log.d(TAG, certNames.toString())
+		assertTrue(certNames.containsAll(arrayListOf("a4a_android-ca", "a4a_root-ca", "a4a_app_iheartradioconnect___com_clearchannel_iheartradio_connect_00.00.18")))
 	}
 }

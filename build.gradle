@@ -54,5 +54,6 @@ dependencies {
     androidTestCompile 'org.awaitility:awaitility-scala:3.1.0'
     androidTestCompile 'com.android.support.test:runner:1.0.1'
     androidTestCompile 'com.android.support.test.espresso:espresso-core:3.0.1'
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    compile "org.bouncycastle:bcprov-jdk16:1.46", "org.bouncycastle:bcmail-jdk16:1.46"
 }

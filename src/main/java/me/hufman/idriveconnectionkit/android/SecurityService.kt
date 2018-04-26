@@ -7,6 +7,7 @@ import android.content.ServiceConnection
 import android.os.IBinder
 import android.util.Log
 import com.bmwgroup.connected.internal.security.ICarSecurityService
+import java.util.*
 
 
 object SecurityService {
@@ -15,6 +16,7 @@ object SecurityService {
 	val knownSecurityServices = HashMap<String, String>()
 	val securityConnections = HashMap<String, SecurityConnectionListener>()
 	val activeSecurityConnections = HashMap<String, ICarSecurityService>()
+	var sourcePackageName: String = ""  // the default packageName
 	var listener = Runnable {}
 
 	init {
@@ -71,6 +73,7 @@ object SecurityService {
 	 * Try to connect to any available BMW/Mini security services
 	 */
 	fun connect(context: Context) {
+		sourcePackageName = context.packageName
 		knownSecurityServices.forEach { (key, value) ->
 			if (!activeSecurityConnections.containsKey(key)) {
 				securityConnections.remove(key)
@@ -92,11 +95,21 @@ object SecurityService {
 	 * Sign the given challenge from the car, returning a response to login with
 	 * The packageName and appName don't really matter
 	 */
-	fun signChallenge(packageName: String, appName: String, challenge: ByteArray):ByteArray {
+	fun signChallenge(packageName: String? = null, appName: String = "", challenge: ByteArray):ByteArray {
 		val connection = activeSecurityConnections.values.first()
-		val handle = connection.createSecurityContext(packageName, appName)
+		val handle = connection.createSecurityContext(packageName ?: sourcePackageName, appName)
 		val response = connection.signChallenge(handle, challenge)
 		connection.releaseSecurityContext(handle)
 		return response
+	}
+
+	/**
+	 * Loads the BMW cert from the security service
+	 * This is helpful for logging into the car
+	 */
+	fun fetchBMWCerts(packageName: String? = null, appName: String = ""):ByteArray {
+		val connection = activeSecurityConnections.values.first()
+		val handle = connection.createSecurityContext(packageName ?: sourcePackageName, appName)
+		return connection.loadAppCert(handle)
 	}
 }
