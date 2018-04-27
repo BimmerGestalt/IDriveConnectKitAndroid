@@ -12,28 +12,31 @@ android:
 
 # Emulator Management: Create, Start and Wait
 before_script:
-  - echo no | android create avd --force -n test -t android-24 --abi armeabi-v7a
-  - emulator -avd test -no-window &
-  - android-wait-for-emulator
-  - adb shell input keyevent 82 &
+#  - echo no | android create avd --force -n test -t android-24 --abi armeabi-v7a
+#  - emulator -avd test -no-window &
+#  - android-wait-for-emulator
+#  - adb shell input keyevent 82 &
   # install Mini Connected
-  - wget --inet4-only https://hufman.me/MINI_Connected_Classic_v1.1.3_apkpure.com.apk -O connected.apk
-  - adb install connected.apk
-  # install an example CarAPI app
-  - wget --inet4-only https://hufman.me/iHeartRadio_for_Auto_v1.12.2_apkpure.com.apk -O iheartradio.apk
-  - adb install iheartradio.apk
+#  - wget --inet4-only https://hufman.me/MINI_Connected_Classic_v1.1.3_apkpure.com.apk -O connected.apk
+#  - adb install connected.apk
+#  # install an example CarAPI app
+#  - wget --inet4-only https://hufman.me/iHeartRadio_for_Auto_v1.12.2_apkpure.com.apk -O iheartradio.apk
+#  - adb install iheartradio.apk
   # install a report about xunit
-  - pip install --user xunitparser
+#  - pip install --user xunitparser
 
 script:
   - echo -en 'travis_fold:start:script.gradle_build\\r'
   - bash ./gradlew build
   - echo -en 'travis_fold:end:script.gradle_build\\r'
-  - adb logcat -c
+  - echo -en 'travis_fold:start:script.gradle_lint_output\\r'
+  - cat build/outputs/lint-results-debug.html
+  - echo -en 'travis_fold:end:script.gradle_lint_output\\r'
+#  - adb logcat -c
   - echo -en 'travis_fold:start:script.gradle_connectedCheck\\r'
-  - bash ./gradlew connectedCheck
+#  - bash ./gradlew connectedCheck
   - echo -en 'travis_fold:end:script.gradle_connectedCheck\\r'
-  - python buildtools/xunit_summary.py build/outputs/androidTest-results/connected/*.xml
+#  - python buildtools/xunit_summary.py build/outputs/androidTest-results/connected/*.xml
 
 after_script:
   - adb logcat -d
