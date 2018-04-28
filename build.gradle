@@ -35,7 +35,7 @@ android {
     }
 
     linkOptions {
-        disable 'InvalidPackage'    # the dangerous parts of bouncycastle aren't used
+        disable 'InvalidPackage'    // the dangerous parts of bouncycastle aren't used
     }
 
     buildTypes {
