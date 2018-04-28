@@ -38,5 +38,5 @@ script:
   - echo -en 'travis_fold:end:script.gradle_connectedCheck\\r'
 #  - python buildtools/xunit_summary.py build/outputs/androidTest-results/connected/*.xml
 
-after_script:
-  - adb logcat -d
+#after_script:
+#  - adb logcat -d
