@@ -34,7 +34,7 @@ android {
         multiDexEnabled true
     }
 
-    linkOptions {
+    lintOptions {
         disable 'InvalidPackage'    // the dangerous parts of bouncycastle aren't used
     }
 
