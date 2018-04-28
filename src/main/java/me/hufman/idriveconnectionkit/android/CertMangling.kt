@@ -1,20 +1,14 @@
 package me.hufman.idriveconnectionkit.android
 
-import org.bouncycastle.asn1.ASN1ObjectIdentifier
-import org.bouncycastle.asn1.x509.CertificateList
-import org.bouncycastle.cert.X509CRLHolder
-import org.bouncycastle.cert.X509CertificateHolder
-import org.bouncycastle.cms.CMSSignedData
-import org.bouncycastle.openssl.PEMReader
-import org.bouncycastle.openssl.PEMWriter
-import org.bouncycastle.util.CollectionStore
-import org.bouncycastle.util.Selector
-import org.bouncycastle.util.io.pem.PemObject
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.io.InputStreamReader
 import java.io.OutputStreamWriter
+import java.security.cert.CertificateFactory
+import java.security.cert.X509Certificate
+import javax.security.auth.x500.X500Principal
+import android.util.Base64
 import java.util.*
+
 
 /**
  * Helper functions to rearrange P7B files
@@ -22,56 +16,50 @@ import java.util.*
 object CertMangling {
 
 	/**
-	 * BouncyCastle's Store object only provides access to a cert by iterating with this Selector
-	 * So this simple Selector emits all certs from the Store
-	 */
-	class SelectAll: Selector {
-		override fun clone(): Any {
-			return this
-		}
-		override fun match(obj: Any): Boolean {
-			return true
-		}
-	}
-
-	/**
-	 * Loads the given p7b PEM file into a CMSSignedData object, or null if it failed to parse
-	 */
-	fun loadCertCms(p7b: ByteArray): CMSSignedData? {
-		try {
-			val pem = PEMReader(InputStreamReader(ByteArrayInputStream(p7b))).readPemObject()
-			return CMSSignedData(pem.content)
-		} catch (e: Exception) {
-			return null
-		}
-	}
-
-	/**
 	 * Loads a list of all the certs in this p7b PEM file
 	 */
-	fun loadCerts(p7b: ByteArray): Collection<X509CertificateHolder>? {
-		val cms = loadCertCms(p7b) ?: return null
-
-		return cms.certificates.getMatches(SelectAll()).filterIsInstance<X509CertificateHolder>()
+	fun loadCerts(p7b: ByteArray): Collection<X509Certificate>? {
+		val cf = CertificateFactory.getInstance("X.509")
+		return cf.generateCertificates(ByteArrayInputStream(p7b)).filterIsInstance<X509Certificate>()
 	}
 
+	/**
+	 * Helpfully parses out the X500 name components from a Principal
+	 */
+	fun getDNPieces(principal: X500Principal): List<String> {
+		return principal.name.split(Regex("(?<!\\\\),"))
+	}
+
+	/**
+	 * Converts an array of X500 rDNs to a useful map
+	 */
+	fun parseDNPieces(rdns: List<String>): Map<String, String> {
+		return rdns.associate {rdn ->
+			Pair(rdn.substringBefore('=').trim(), rdn.substringAfter('=').trim())
+		}
+	}
 	/**
 	 * Given an x509 cert, return only the CN part of the subject name
 	 */
-	fun getCN(cert: X509CertificateHolder?): String? {
-		val cnId = ASN1ObjectIdentifier("2.5.4.3")
+	fun getCN(cert: X509Certificate?): String? {
 		if (cert == null) return null
-		return cert.subject.rdNs.firstOrNull { it.first.type == cnId }?.first?.value?.toString()
+		return parseDNPieces(getDNPieces(cert.subjectX500Principal))["CN"]
 	}
 
 	/**
-	 * Outputs the given CMSSignedData as a p7b PEM string
+	 * Outputs the given list of certs as a p7b PEM string
 	 */
-	fun outputCert(cert: CMSSignedData): ByteArray {
+	fun outputCert(certs: List<X509Certificate>): ByteArray {
+		val cf = CertificateFactory.getInstance("X.509")
 		val pem = ByteArrayOutputStream()
-		val pemwriter = PEMWriter(OutputStreamWriter(pem))
-		pemwriter.writeObject(PemObject("PKCS7", cert.encoded))
-		pemwriter.close()
+		val certPath = cf.generateCertPath(certs)
+		for (encoding in certPath.getEncodings()) {
+			System.out.println("Found encoding: " + encoding);
+		}
+		pem.write("-----BEGIN PKCS7-----\n".toByteArray())
+		pem.write(Base64.encode(certPath.getEncoded("PKCS7"), Base64.DEFAULT or Base64.CRLF))
+		pem.write("-----END PKCS7-----\n".toByteArray())
+		pem.close()
 		return pem.toByteArray()
 	}
 
@@ -89,19 +77,9 @@ object CertMangling {
 		val bmwTouchCert = bmwCerts?.filter {
 			getCN(it)?.startsWith("a4a_app_BMWTouchCommand_Connection") ?: false
 		} ?: LinkedList()
-		val combinedCerts = CollectionStore(filteredCerts + bmwTouchCert)
+		val combinedCerts = filteredCerts + bmwTouchCert
 
-		// reconstruct a new p7b file
-		val oldCertCMS = loadCertCms(appCert) ?: return ByteArray(0)
-		val crls = CollectionStore(oldCertCMS.crLs.getMatches(SelectAll()).mapNotNull {
-			when (it) {
-				is X509CRLHolder -> it
-				is CertificateList -> X509CRLHolder(it)
-				else -> null
-			}
-		})
-		val newCertCMS = CMSSignedData.replaceCertificatesAndCRLs(oldCertCMS, combinedCerts, oldCertCMS.attributeCertificates, crls)
-		return outputCert(newCertCMS)
+		return outputCert(combinedCerts)
 	}
 
 }
