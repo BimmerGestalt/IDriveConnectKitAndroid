@@ -38,7 +38,10 @@ object SecurityService {
 			Log.i(TAG, "Connecting to " + name)
 			val intent = Intent(intentName)
 			intent.setPackage(intentName.substring(0, intentName.lastIndexOf('.')))
-			context.bindService(intent, this, Context.BIND_AUTO_CREATE)
+			val exists = context.bindService(intent, this, Context.BIND_AUTO_CREATE)
+			if (!exists) {
+				onServiceDisconnected(null)
+			}
 		}
 
 		override fun onServiceConnected(componentName: ComponentName?, service: IBinder?) {
