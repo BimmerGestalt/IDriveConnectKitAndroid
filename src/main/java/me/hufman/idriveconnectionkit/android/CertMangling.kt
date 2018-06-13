@@ -87,7 +87,7 @@ object CertMangling {
 			getCN(it) != "a4a_root-ca"
 		} ?: LinkedList()
 		val bmwTouchCert = bmwCerts?.filter {
-			getCN(it)?.startsWith("a4a_app_BMWTouchCommand_Connection") ?: false
+			getCN(it)?.contains("connection", ignoreCase=true) ?: false
 		} ?: LinkedList()
 		val combinedCerts = CollectionStore(filteredCerts + bmwTouchCert)
 
