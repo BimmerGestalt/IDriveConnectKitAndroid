@@ -5,19 +5,20 @@ import android.content.Context
 import android.content.Intent
 import android.content.Intent.FLAG_INCLUDE_STOPPED_PACKAGES
 import android.content.IntentFilter
-import android.content.res.AssetFileDescriptor
 import android.net.Uri
 import android.util.Log
 import com.bmwgroup.connected.car.app.BrandType
-
+import java.io.InputStream
 
 
 object CarAPIDiscovery {
-	const val TAG = "IDriveSecurityService"
+	const val TAG = "IDriveCarApiDiscovery"
 
 	var broadcastReceiver: DiscoveryReceiver? = null
 	val discoveredApps: MutableMap<String, CarAPIClient> = HashMap()
-	class DiscoveryReceiver(val callback: DiscoveryCallback?): BroadcastReceiver() {
+	var callback: DiscoveryCallback? = null
+
+	class DiscoveryReceiver: BroadcastReceiver() {
 		val INTENT_NAME = "com.bmwgroup.connected.app.action.ACTION_CAR_APPLICATION_REGISTERING"
 		fun intentFilter(): IntentFilter {
 			return IntentFilter(INTENT_NAME)
@@ -45,8 +46,9 @@ object CarAPIDiscovery {
 	 */
 	fun discoverApps(context: Context, callback: DiscoveryCallback?) {
 		// register to listen for BMW Connected Ready announcements
+		this.callback = callback
 		if (broadcastReceiver == null) {
-			broadcastReceiver = DiscoveryReceiver(callback)
+			broadcastReceiver = DiscoveryReceiver()
 			context.registerReceiver(broadcastReceiver, broadcastReceiver!!.intentFilter())
 		}
 
@@ -68,14 +70,14 @@ object CarAPIDiscovery {
 	}
 }
 
-class CarAPIClient(val id: String,
-                   val title: String,
-                   val category: String,
-                   val version: String,
-                   val brandType: BrandType,
-                   val connectIntentName: String,
-                   val disconnectIntentName: String,
-                   val appIcon: ByteArray?) {
+open class CarAPIClient(val id: String,
+                        val title: String,
+                        val category: String,
+                        val version: String,
+                        val brandType: BrandType,
+                        val connectIntentName: String,
+                        val disconnectIntentName: String,
+                        val appIcon: ByteArray?) {
 
 	companion object {
 		fun fromDiscoveryIntent(intent: Intent): CarAPIClient {
@@ -93,16 +95,16 @@ class CarAPIClient(val id: String,
 	/**
 	 * Opens the requested file from the CarAPI content provider
 	 */
-	fun openContent(context: Context, path: String): AssetFileDescriptor? {
+	fun openContent(context: Context, path: String): InputStream? {
 		val providerModule = "content://" + id + ".provider"
 		val uri = providerModule + "/" + path.trimStart('/')
-		return context.contentResolver.openAssetFileDescriptor(Uri.parse(uri), "r")
+		return context.contentResolver.openAssetFileDescriptor(Uri.parse(uri), "r")?.createInputStream()
 	}
 
 	/**
 	 * Gets the app-specific cert to sign into the car with SAS
 	 */
-	fun getAppCertificate(context: Context): AssetFileDescriptor? {
+	open fun getAppCertificate(context: Context): InputStream? {
 		return openContent(context, "carapplications/" + id + "/" + id + ".p7b")
 	}
 
@@ -110,7 +112,7 @@ class CarAPIClient(val id: String,
 	 * Gets the UI Description layout file
 	 * May be missing, if the app uses the default CarAPI layouts
 	 */
-	fun getUiDescription(context: Context): AssetFileDescriptor? {
+	open fun getUiDescription(context: Context): InputStream? {
 		return openContent(context, "carapplications/" + id + "/rhmi/ui_description.xml")
 	}
 
@@ -118,7 +120,7 @@ class CarAPIClient(val id: String,
 	 * Get the images.zip db from the app
 	 * @param brand should be {bmw,mini,common}
 	 */
-	fun getImagesDB(context: Context, brand: String): AssetFileDescriptor? {
+	open fun getImagesDB(context: Context, brand: String): InputStream? {
 		return openContent(context, "carapplications/" + id + "/rhmi/" + brand + "/images.zip")
 	}
 
@@ -126,7 +128,7 @@ class CarAPIClient(val id: String,
 	 * Get the texts.zip db from the app
 	 * @param brand should be {bmw,mini,common}
 	 */
-	fun getTextsDB(context: Context, brand: String): AssetFileDescriptor? {
+	open fun getTextsDB(context: Context, brand: String): InputStream? {
 		return openContent(context, "carapplications/" + id + "/rhmi/" + brand + "/texts.zip")
 	}
 

@@ -74,7 +74,7 @@ class TestCarAPIDiscovery {
 		assertNotNull(app.getTextsDB(appContext, "bmw"))
 		assertNotNull(app.getImagesDB(appContext, "bmw"))
 
-		val certIS = app.getAppCertificate(appContext)?.createInputStream()
+		val certIS = app.getAppCertificate(appContext)
 		val cert = loadInputStream(certIS as InputStream)
 		assertEquals(6299, cert.size)
 

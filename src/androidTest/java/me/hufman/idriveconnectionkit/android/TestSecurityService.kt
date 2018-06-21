@@ -77,7 +77,7 @@ class TestSecurityService {
 		CarAPIDiscovery.cancelDiscovery(appContext)
 		assertTrue(CarAPIDiscovery.discoveredApps.containsKey("com.clearchannel.iheartradio.connect"))
 		val app = CarAPIDiscovery.discoveredApps["com.clearchannel.iheartradio.connect"] as CarAPIClient
-		val appCert = TestCarAPIDiscovery.loadInputStream(app.getAppCertificate(appContext)?.createInputStream() as InputStream)
+		val appCert = TestCarAPIDiscovery.loadInputStream(app.getAppCertificate(appContext) as InputStream)
 
 		// load up bmw cert
 		SecurityService.connect(appContext)

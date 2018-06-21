@@ -29,6 +29,10 @@ class IDriveConnectionListener : BroadcastReceiver() {
 		var instanceId: Int? = null
 			private set
 		var callback: Runnable? = null
+
+		fun reset() {
+			isConnected = false
+		}
 	}
 
 	/**
