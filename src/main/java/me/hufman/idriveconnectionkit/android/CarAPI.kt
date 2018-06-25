@@ -9,6 +9,7 @@ import android.net.Uri
 import android.util.Log
 import com.bmwgroup.connected.car.app.BrandType
 import java.io.InputStream
+import java.lang.IllegalArgumentException
 
 
 object CarAPIDiscovery {
@@ -64,7 +65,9 @@ object CarAPIDiscovery {
 	 */
 	fun cancelDiscovery(context: Context? = null) {
 		if (broadcastReceiver != null) {
-			context?.unregisterReceiver(broadcastReceiver)
+			try {
+				context?.unregisterReceiver(broadcastReceiver)
+			} catch (e: IllegalArgumentException) {}
 			broadcastReceiver = null
 		}
 	}

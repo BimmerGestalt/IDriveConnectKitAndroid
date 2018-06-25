@@ -18,6 +18,7 @@ object SecurityService {
 	val activeSecurityConnections = HashMap<String, ICarSecurityService>()
 	var sourcePackageName: String = ""  // the default packageName
 	var listener = Runnable {}
+	var bmwCerts: ByteArray? = null
 
 	init {
 		// The list of known BMW/Mini apps that we can connect to
@@ -41,8 +42,10 @@ object SecurityService {
 			val exists = context.bindService(intent, this, Context.BIND_AUTO_CREATE)
 			if (!exists) {
 				onServiceDisconnected(null)
+				context.unbindService(this)
 			}
 		}
+
 
 		override fun onServiceConnected(componentName: ComponentName?, service: IBinder?) {
 			// Remember that we connected
@@ -99,20 +102,29 @@ object SecurityService {
 	 * The packageName and appName don't really matter
 	 */
 	fun signChallenge(packageName: String? = null, appName: String = "", challenge: ByteArray):ByteArray {
-		val connection = activeSecurityConnections.values.first()
-		val handle = connection.createSecurityContext(packageName ?: sourcePackageName, appName)
-		val response = connection.signChallenge(handle, challenge)
-		connection.releaseSecurityContext(handle)
-		return response
+		synchronized(SecurityService) {
+			val connection = activeSecurityConnections.values.first()
+			val handle = connection.createSecurityContext(packageName ?: sourcePackageName, appName)
+			val response = connection.signChallenge(handle, challenge)
+			connection.releaseSecurityContext(handle)
+			return response
+		}
 	}
 
 	/**
 	 * Loads the BMW cert from the security service
 	 * This is helpful for logging into the car
 	 */
-	fun fetchBMWCerts(packageName: String? = null, appName: String = ""):ByteArray {
-		val connection = activeSecurityConnections.values.first()
-		val handle = connection.createSecurityContext(packageName ?: sourcePackageName, appName)
-		return connection.loadAppCert(handle)
+	fun fetchBMWCerts(packageName: String? = null, appName: String = "SecurityService"):ByteArray {
+		synchronized(SecurityService) {
+			var bmwCerts = this.bmwCerts
+			if (bmwCerts != null) return bmwCerts
+			val connection = activeSecurityConnections.values.first()
+			val handle = connection.createSecurityContext(packageName ?: sourcePackageName, appName)
+			bmwCerts = connection.loadAppCert(handle)
+			this.bmwCerts = bmwCerts
+			connection.releaseSecurityContext(handle)
+			return bmwCerts
+		}
 	}
 }
