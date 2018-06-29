@@ -16,7 +16,7 @@ object CarAPIDiscovery {
 	const val TAG = "IDriveCarApiDiscovery"
 
 	var broadcastReceiver: DiscoveryReceiver? = null
-	val discoveredApps: MutableMap<String, CarAPIClient> = HashMap()
+	val discoveredApps: MutableMap<String, CarAppResources> = HashMap()
 	var callback: DiscoveryCallback? = null
 
 	class DiscoveryReceiver: BroadcastReceiver() {
@@ -26,10 +26,10 @@ object CarAPIDiscovery {
 		}
 		override fun onReceive(context: Context?, intent: Intent?) {
 			val id = intent?.getStringExtra("EXTRA_APPLICATION_ID")
-			if (id != null) {
+			if (context != null && id != null) {
 				Log.i(TAG, "Heard CarAPI announcement of: " + intent.getStringExtra("EXTRA_APPLICATION_ID"))
 				try {
-					val app = CarAPIClient.fromDiscoveryIntent(intent)
+					val app = CarAPIClient.fromDiscoveryIntent(context, intent)
 					discoveredApps[id] = app
 					callback?.discovered(app)
 				} catch (e: Exception) {
@@ -73,18 +73,20 @@ object CarAPIDiscovery {
 	}
 }
 
-open class CarAPIClient(val id: String,
+class CarAPIClient(val context: Context,
+                        val id: String,
                         val title: String,
                         val category: String,
                         val version: String,
                         val brandType: BrandType,
                         val connectIntentName: String,
                         val disconnectIntentName: String,
-                        val appIcon: ByteArray?) {
+                        val appIcon: ByteArray?): CarAppResources {
 
 	companion object {
-		fun fromDiscoveryIntent(intent: Intent): CarAPIClient {
-			return CarAPIClient(id = intent.getStringExtra("EXTRA_APPLICATION_ID"),
+		fun fromDiscoveryIntent(context: Context, intent: Intent): CarAPIClient {
+			return CarAPIClient(context = context,
+			                    id = intent.getStringExtra("EXTRA_APPLICATION_ID"),
 			                    title = intent.getStringExtra("EXTRA_APPLICATION_TITLE"),
 			                    category = intent.getStringExtra("EXTRA_APPLICATION_CATEGORY"),
 			                    version = intent.getStringExtra("EXTRA_APPLICATION_VERSION"),
@@ -98,7 +100,7 @@ open class CarAPIClient(val id: String,
 	/**
 	 * Opens the requested file from the CarAPI content provider
 	 */
-	fun openContent(context: Context, path: String): InputStream? {
+	fun openContent(path: String): InputStream? {
 		val providerModule = "content://" + id + ".provider"
 		val uri = providerModule + "/" + path.trimStart('/')
 		return context.contentResolver.openAssetFileDescriptor(Uri.parse(uri), "r")?.createInputStream()
@@ -107,32 +109,32 @@ open class CarAPIClient(val id: String,
 	/**
 	 * Gets the app-specific cert to sign into the car with SAS
 	 */
-	open fun getAppCertificate(context: Context): InputStream? {
-		return openContent(context, "carapplications/" + id + "/" + id + ".p7b")
+	override fun getAppCertificate(): InputStream? {
+		return openContent("carapplications/" + id + "/" + id + ".p7b")
 	}
 
 	/**
 	 * Gets the UI Description layout file
 	 * May be missing, if the app uses the default CarAPI layouts
 	 */
-	open fun getUiDescription(context: Context): InputStream? {
-		return openContent(context, "carapplications/" + id + "/rhmi/ui_description.xml")
+	override fun getUiDescription(): InputStream? {
+		return openContent("carapplications/" + id + "/rhmi/ui_description.xml")
 	}
 
 	/**
 	 * Get the images.zip db from the app
 	 * @param brand should be {bmw,mini,common}
 	 */
-	open fun getImagesDB(context: Context, brand: String): InputStream? {
-		return openContent(context, "carapplications/" + id + "/rhmi/" + brand + "/images.zip")
+	override fun getImagesDB(brand: String): InputStream? {
+		return openContent("carapplications/" + id + "/rhmi/" + brand + "/images.zip")
 	}
 
 	/**
 	 * Get the texts.zip db from the app
 	 * @param brand should be {bmw,mini,common}
 	 */
-	open fun getTextsDB(context: Context, brand: String): InputStream? {
-		return openContent(context, "carapplications/" + id + "/rhmi/" + brand + "/texts.zip")
+	override fun getTextsDB(brand: String): InputStream? {
+		return openContent("carapplications/" + id + "/rhmi/" + brand + "/texts.zip")
 	}
 
 	override fun toString(): String {

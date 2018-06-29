@@ -69,12 +69,12 @@ class TestCarAPIDiscovery {
 		assertNotNull(app.disconnectIntentName)
 
 		// try to fetch resources from it
-		assertNotNull(app.getAppCertificate(appContext))
-		assertNull(app.getUiDescription(appContext))
-		assertNotNull(app.getTextsDB(appContext, "bmw"))
-		assertNotNull(app.getImagesDB(appContext, "bmw"))
+		assertNotNull(app.getAppCertificate())
+		assertNull(app.getUiDescription())
+		assertNotNull(app.getTextsDB("bmw"))
+		assertNotNull(app.getImagesDB("bmw"))
 
-		val certIS = app.getAppCertificate(appContext)
+		val certIS = app.getAppCertificate()
 		val cert = loadInputStream(certIS as InputStream)
 		assertEquals(6299, cert.size)
 
