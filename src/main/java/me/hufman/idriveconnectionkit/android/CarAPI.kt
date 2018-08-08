@@ -63,10 +63,10 @@ object CarAPIDiscovery {
 	/**
 	 * Cancels app discovery
 	 */
-	fun cancelDiscovery(context: Context? = null) {
+	fun cancelDiscovery(context: Context) {
 		if (broadcastReceiver != null) {
 			try {
-				context?.unregisterReceiver(broadcastReceiver)
+				context.unregisterReceiver(broadcastReceiver)
 			} catch (e: IllegalArgumentException) {}
 			broadcastReceiver = null
 		}
