@@ -54,10 +54,17 @@ object CarAPIDiscovery {
 		}
 
 		// trigger installed BMW Connected Ready apps to announce their presence
-		val discoveryIntent = Intent()
+		val discoveryIntent = Intent("com.bmwgroup.connected.car.app.action.CONNECTED_APP_INSTALLED")
 		discoveryIntent.addFlags(FLAG_INCLUDE_STOPPED_PACKAGES)
-		discoveryIntent.action = "com.bmwgroup.connected.car.app.action.CONNECTED_APP_INSTALLED"
 		context.sendBroadcast(discoveryIntent)
+		Log.i(TAG, "Soliciting CarAPI")
+
+		// Samsung phones can't send broadcasts?
+		val listeners = context.packageManager.queryBroadcastReceivers(discoveryIntent, 0)
+		listeners.forEach {
+			val directedIntent = discoveryIntent.setPackage(it.activityInfo.packageName)
+			context.sendBroadcast(directedIntent)
+		}
 	}
 
 	/**
