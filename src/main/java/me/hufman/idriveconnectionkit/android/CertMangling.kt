@@ -1,5 +1,6 @@
 package me.hufman.idriveconnectionkit.android
 
+import android.util.Log
 import org.bouncycastle.asn1.ASN1ObjectIdentifier
 import org.bouncycastle.asn1.x509.CertificateList
 import org.bouncycastle.cert.X509CRLHolder
@@ -87,6 +88,7 @@ object CertMangling {
 			getCN(it) != "a4a_root-ca"
 		} ?: LinkedList()
 		val bmwTouchCert = bmwCerts?.filter {
+			Log.d("CertMangling", "Considering merging in BMW cert ${getCN(it)}")
 			getCN(it)?.contains("connection", ignoreCase=true) ?: false
 		} ?: LinkedList()
 		val combinedCerts = CollectionStore(filteredCerts + bmwTouchCert)
