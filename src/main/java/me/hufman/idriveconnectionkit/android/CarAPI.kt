@@ -54,19 +54,26 @@ object CarAPIDiscovery {
 		}
 
 		// trigger installed BMW Connected Ready apps to announce their presence
-		val discoveryIntent = Intent()
+		val discoveryIntent = Intent("com.bmwgroup.connected.car.app.action.CONNECTED_APP_INSTALLED")
 		discoveryIntent.addFlags(FLAG_INCLUDE_STOPPED_PACKAGES)
-		discoveryIntent.action = "com.bmwgroup.connected.car.app.action.CONNECTED_APP_INSTALLED"
 		context.sendBroadcast(discoveryIntent)
+		Log.i(TAG, "Soliciting CarAPI")
+
+		// Samsung phones can't send broadcasts?
+		val listeners = context.packageManager.queryBroadcastReceivers(discoveryIntent, 0)
+		listeners.forEach {
+			val directedIntent = discoveryIntent.setPackage(it.activityInfo.packageName)
+			context.sendBroadcast(directedIntent)
+		}
 	}
 
 	/**
 	 * Cancels app discovery
 	 */
-	fun cancelDiscovery(context: Context? = null) {
+	fun cancelDiscovery(context: Context) {
 		if (broadcastReceiver != null) {
 			try {
-				context?.unregisterReceiver(broadcastReceiver)
+				context.unregisterReceiver(broadcastReceiver)
 			} catch (e: IllegalArgumentException) {}
 			broadcastReceiver = null
 		}
@@ -78,6 +85,7 @@ class CarAPIClient(val context: Context,
                         val title: String,
                         val category: String,
                         val version: String,
+                        val rhmiVersion: String?,
                         val brandType: BrandType,
                         val connectIntentName: String,
                         val disconnectIntentName: String,
@@ -90,6 +98,7 @@ class CarAPIClient(val context: Context,
 			                    title = intent.getStringExtra("EXTRA_APPLICATION_TITLE"),
 			                    category = intent.getStringExtra("EXTRA_APPLICATION_CATEGORY"),
 			                    version = intent.getStringExtra("EXTRA_APPLICATION_VERSION"),
+			                    rhmiVersion = intent.getStringExtra("EXTRA_RHMI_VERSION"),
 			                    brandType = intent.getSerializableExtra("EXTRA_APPLICATION_BRAND") as BrandType,
 			                    connectIntentName = intent.getStringExtra("EXTRA_APPLICATION_CONNECT_RECEIVER_ACTION"),
 			                    disconnectIntentName = intent.getStringExtra("EXTRA_APPLICATION_DISCONNECT_RECEIVER_ACTION"),
