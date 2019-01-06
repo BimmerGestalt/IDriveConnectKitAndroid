@@ -93,8 +93,8 @@ object SecurityService {
 	/**
 	 * Whether any BMW/Mini security services are connected
 	 */
-	fun isConnected(): Boolean {
-		return activeSecurityConnections.size > 0
+	fun isConnected(brandHint: String = ""): Boolean {
+		return activeSecurityConnections.keys.filter { it.startsWith(brandHint, ignoreCase = true) }.isNotEmpty()
 	}
 
 	/**
@@ -115,11 +115,12 @@ object SecurityService {
 	 * Loads the BMW cert from the security service
 	 * This is helpful for logging into the car
 	 */
-	fun fetchBMWCerts(packageName: String? = null, appName: String = "SecurityService"):ByteArray {
+	fun fetchBMWCerts(packageName: String? = null, appName: String = "SecurityService", brandHint: String = ""):ByteArray {
 		synchronized(SecurityService) {
 			var bmwCerts = this.bmwCerts
 			if (bmwCerts != null) return bmwCerts
-			val connection = activeSecurityConnections.values.first()
+			val connection = activeSecurityConnections.entries.firstOrNull { it.key.startsWith(brandHint, ignoreCase = true) }?.value ?:
+			                activeSecurityConnections.values.first()
 			val handle = connection.createSecurityContext(packageName ?: sourcePackageName, appName)
 			bmwCerts = connection.loadAppCert(handle)
 			this.bmwCerts = bmwCerts

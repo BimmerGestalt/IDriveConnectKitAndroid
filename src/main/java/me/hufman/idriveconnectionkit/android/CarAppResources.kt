@@ -7,13 +7,13 @@ interface CarAppResources {
 	/**
 	 * Gets the app-specific cert to sign into the car with SAS
 	 */
-	fun getAppCertificate(): InputStream?
+	fun getAppCertificate(brand: String = ""): InputStream?
 
 	/**
 	 * Gets the UI Description layout file
 	 * May be missing, if the app uses the default CarAPI layouts
 	 */
-	fun getUiDescription(): InputStream?
+	fun getUiDescription(brand: String = ""): InputStream?
 
 	/**
 	 * Get the images.zip db from the app

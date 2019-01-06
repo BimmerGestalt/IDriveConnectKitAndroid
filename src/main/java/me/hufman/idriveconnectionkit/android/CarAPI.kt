@@ -109,7 +109,7 @@ class CarAPIClient(val context: Context,
 	/**
 	 * Gets the app-specific cert to sign into the car with SAS
 	 */
-	override fun getAppCertificate(): InputStream? {
+	override fun getAppCertificate(brand: String): InputStream? {
 		return openContent("carapplications/" + id + "/" + id + ".p7b")
 	}
 
@@ -117,7 +117,7 @@ class CarAPIClient(val context: Context,
 	 * Gets the UI Description layout file
 	 * May be missing, if the app uses the default CarAPI layouts
 	 */
-	override fun getUiDescription(): InputStream? {
+	override fun getUiDescription(brand: String): InputStream? {
 		return openContent("carapplications/" + id + "/rhmi/ui_description.xml")
 	}
 
