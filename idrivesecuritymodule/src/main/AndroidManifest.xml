@@ -1,0 +1,28 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="de.bmw.connected">
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true">
+
+        <service
+            android:name="com.bmwgroup.connected.core.services.security.MiniSecurityService"
+            android:exported="true">
+            <intent-filter>
+                <action
+                    android:name="de.mini.connected.SECURITY_SERVICE" />
+            </intent-filter>
+        </service>
+        <service
+            android:name="com.bmwgroup.connected.core.services.security.BMWSecurityService"
+            android:exported="true">
+            <intent-filter>
+                <action
+                    android:name="de.bmw.connected.SECURITY_SERVICE" />
+            </intent-filter>
+        </service>
+    </application>
+</manifest>
