@@ -7,6 +7,7 @@ import android.content.ServiceConnection
 import android.os.IBinder
 import android.util.Log
 import com.bmwgroup.connected.internal.security.ICarSecurityService
+import java.lang.Exception
 import java.util.*
 
 
@@ -39,10 +40,15 @@ object SecurityService {
 			Log.i(TAG, "Connecting to " + name)
 			val intent = Intent(intentName)
 			intent.setPackage(intentName.substring(0, intentName.lastIndexOf('.')))
-			val exists = context.bindService(intent, this, Context.BIND_AUTO_CREATE)
-			if (!exists) {
+			try {
+				val exists = context.bindService(intent, this, Context.BIND_AUTO_CREATE)
+				if (!exists) {
+					onServiceDisconnected(null)
+					context.unbindService(this)
+				}
+			} catch (e: SecurityException) {
+				// new versions of BMW Connected don't let us connect
 				onServiceDisconnected(null)
-				context.unbindService(this)
 			}
 		}
 
@@ -80,12 +86,36 @@ object SecurityService {
 	 */
 	fun connect(context: Context) {
 		sourcePackageName = context.packageName
+		verifyConnections() // clean out any dead connections that have been uninstalled
 		knownSecurityServices.forEach { (key, value) ->
 			if (!activeSecurityConnections.containsKey(key)) {
 				securityConnections.remove(key)
 				val connection = SecurityConnectionListener(key, value)
 				securityConnections.put(key, connection)
 				connection.connect(context)
+			} else {
+				Log.i(TAG, "Already connected to $key")
+			}
+		}
+	}
+
+	/**
+	 * Check all the active connections and remove any that aren't actually connected
+	 */
+	fun verifyConnections() {
+		val activeKeys = ArrayList(activeSecurityConnections.keys)
+		activeKeys.forEach { key ->
+			val connection = activeSecurityConnections[key]
+			if (connection == null) {
+				activeSecurityConnections.remove(key)
+			} else {
+				try {
+					val handle = connection.createSecurityContext(sourcePackageName, "test app")
+					connection.releaseSecurityContext(handle)
+				} catch (e: Exception) {
+					Log.i(TAG, "Removing dead connection to $key")
+					activeSecurityConnections.remove(key)
+				}
 			}
 		}
 	}
