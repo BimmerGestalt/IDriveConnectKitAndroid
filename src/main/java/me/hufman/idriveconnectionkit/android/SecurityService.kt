@@ -67,6 +67,9 @@ object SecurityService {
 			// Remove ourselves from the list of active connections
 			Log.i(TAG, "Disconnected from security service " + name)
 			activeSecurityConnections.remove(name)
+			if (activeSecurityConnections.size == 0) {
+				listener.run()
+			}
 		}
 	}
 
