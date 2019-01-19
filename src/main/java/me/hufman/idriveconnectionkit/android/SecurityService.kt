@@ -34,28 +34,27 @@ object SecurityService {
 		knownSecurityServices.put("MiniConnected", "de.mini.connected.SECURITY_SERVICE")
 	}
 
-	class SecurityConnectionListener(val name: String, val intentName: String) : ServiceConnection {
-		fun connect(context: Context) {
+	class SecurityConnectionListener(val context: Context, val name: String, val intentName: String) : ServiceConnection {
+		fun connect() {
 			// Try to connect to a given BMW/Mini app
-			Log.i(TAG, "Connecting to " + name)
+			Log.i(TAG, "Connecting to $name")
 			val intent = Intent(intentName)
 			intent.setPackage(intentName.substring(0, intentName.lastIndexOf('.')))
 			try {
 				val exists = context.bindService(intent, this, Context.BIND_AUTO_CREATE)
 				if (!exists) {
-					onServiceDisconnected(null)
-					context.unbindService(this)
+					disconnect()
 				}
 			} catch (e: SecurityException) {
 				// new versions of BMW Connected don't let us connect
-				onServiceDisconnected(null)
+				disconnect()
 			}
 		}
 
 
 		override fun onServiceConnected(componentName: ComponentName?, service: IBinder?) {
 			// Remember that we connected
-			Log.i(TAG, "Connected to security service " + name)
+			Log.i(TAG, "Connected to security service $name")
 			val previousConnectionCount = activeSecurityConnections.size
 			activeSecurityConnections.put(name, ICarSecurityService.Stub.asInterface(service))
 			if (previousConnectionCount == 0) {
@@ -65,7 +64,11 @@ object SecurityService {
 
 		override fun onServiceDisconnected(p0: ComponentName?) {
 			// Remove ourselves from the list of active connections
-			Log.i(TAG, "Disconnected from security service " + name)
+			Log.i(TAG, "Disconnected from security service $name")
+		}
+
+		fun disconnect() {
+			context.unbindService(this)
 			activeSecurityConnections.remove(name)
 			if (activeSecurityConnections.size == 0) {
 				listener.run()
@@ -93,12 +96,18 @@ object SecurityService {
 		knownSecurityServices.forEach { (key, value) ->
 			if (!activeSecurityConnections.containsKey(key)) {
 				securityConnections.remove(key)
-				val connection = SecurityConnectionListener(key, value)
+				val connection = SecurityConnectionListener(context, key, value)
 				securityConnections.put(key, connection)
-				connection.connect(context)
+				connection.connect()
 			} else {
 				Log.i(TAG, "Already connected to $key")
 			}
+		}
+	}
+
+	fun disconnect() {
+		activeSecurityConnections.keys.forEach {key ->
+			securityConnections[key]?.disconnect()
 		}
 	}
 
