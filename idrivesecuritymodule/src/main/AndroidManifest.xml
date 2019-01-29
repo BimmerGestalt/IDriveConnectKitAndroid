@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="de.bmw.connected">
+    package="com.bmwgroup.connected.bmw">
 
     <application
         android:allowBackup="true"
@@ -13,7 +13,7 @@
             android:exported="true">
             <intent-filter>
                 <action
-                    android:name="de.mini.connected.SECURITY_SERVICE" />
+                    android:name="com.bmwgroup.connected.bmw.SECURITY_SERVICE" />
             </intent-filter>
         </service>
         <service
@@ -21,7 +21,7 @@
             android:exported="true">
             <intent-filter>
                 <action
-                    android:name="de.bmw.connected.SECURITY_SERVICE" />
+                    android:name="com.bmwgroup.connected.bmw.SECURITY_SERVICE" />
             </intent-filter>
         </service>
     </application>
