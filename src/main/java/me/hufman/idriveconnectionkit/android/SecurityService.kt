@@ -15,6 +15,7 @@ object SecurityService {
 	const val TAG = "IDriveSecurityService"
 
 	val knownSecurityServices = HashMap<String, String>()
+	val installedSecurityServices = HashSet<String>()   // what services are detected as installed
 	val securityConnections = HashMap<String, SecurityConnectionListener>()
 	val activeSecurityConnections = HashMap<String, ICarSecurityService>()
 	var sourcePackageName: String = ""  // the default packageName
@@ -42,11 +43,14 @@ object SecurityService {
 			intent.setPackage(intentName.substring(0, intentName.lastIndexOf('.')))
 			try {
 				val exists = context.bindService(intent, this, Context.BIND_AUTO_CREATE)
-				if (!exists) {
+				if (exists) {
+					installedSecurityServices.add(name)
+				} else {
 					disconnect()
 				}
 			} catch (e: SecurityException) {
 				// new versions of BMW Connected don't let us connect
+				installedSecurityServices.add(name)
 				disconnect()
 			}
 		}
