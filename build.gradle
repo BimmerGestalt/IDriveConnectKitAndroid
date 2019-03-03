@@ -32,6 +32,7 @@ android {
     }
 
     lintOptions {
+        abortOnError false
         disable 'InvalidPackage'    // the dangerous parts of bouncycastle aren't used
     }
 
