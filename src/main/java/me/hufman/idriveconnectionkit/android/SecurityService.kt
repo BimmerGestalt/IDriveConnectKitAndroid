@@ -16,8 +16,8 @@ object SecurityService {
 
 	val knownSecurityServices = HashMap<String, String>()
 	val installedSecurityServices = HashSet<String>()   // what services are detected as installed
-	val securityConnections = HashMap<String, SecurityConnectionListener>()
-	val activeSecurityConnections = HashMap<String, ICarSecurityService>()
+	val securityConnections = HashMap<String, SecurityConnectionListener>() // listeners that are trying to connect
+	val activeSecurityConnections = HashMap<String, ICarSecurityService>()  // active proxy objects
 	var sourcePackageName: String = ""  // the default packageName
 	var listener = Runnable {}
 	var bmwCerts: ByteArray? = null
@@ -60,7 +60,7 @@ object SecurityService {
 			// Remember that we connected
 			Log.i(TAG, "Connected to security service $name")
 			val previousConnectionCount = activeSecurityConnections.size
-			activeSecurityConnections.put(name, ICarSecurityService.Stub.asInterface(service))
+			activeSecurityConnections[name] = ICarSecurityService.Stub.asInterface(service)
 			if (previousConnectionCount == 0) {
 				listener.run()
 			}
@@ -69,12 +69,19 @@ object SecurityService {
 		override fun onServiceDisconnected(p0: ComponentName?) {
 			// Remove ourselves from the list of active connections
 			Log.i(TAG, "Disconnected from security service $name")
+			this.disconnect()
 		}
 
 		fun disconnect() {
 			context.unbindService(this)
 			activeSecurityConnections.remove(name)
+			securityConnections.remove(name)
+			if (securityConnections.size == 0) {
+				// no longer connecting
+				listener.run()
+			}
 			if (activeSecurityConnections.size == 0) {
+				// not connected
 				listener.run()
 			}
 		}
@@ -99,9 +106,9 @@ object SecurityService {
 		verifyConnections() // clean out any dead connections that have been uninstalled
 		knownSecurityServices.forEach { (key, value) ->
 			if (!activeSecurityConnections.containsKey(key)) {
-				securityConnections.remove(key)
+				securityConnections.remove(key)?.disconnect()
 				val connection = SecurityConnectionListener(context, key, value)
-				securityConnections.put(key, connection)
+				securityConnections[key] = connection
 				connection.connect()
 			} else {
 				Log.i(TAG, "Already connected to $key")
@@ -111,7 +118,7 @@ object SecurityService {
 
 	fun disconnect() {
 		activeSecurityConnections.keys.forEach {key ->
-			securityConnections[key]?.disconnect()
+			securityConnections.remove(key)?.disconnect()
 		}
 	}
 
@@ -124,6 +131,7 @@ object SecurityService {
 			val connection = activeSecurityConnections[key]
 			if (connection == null) {
 				activeSecurityConnections.remove(key)
+				securityConnections.remove(key)?.disconnect()
 			} else {
 				try {
 					val handle = connection.createSecurityContext(sourcePackageName, "test app")
@@ -131,16 +139,23 @@ object SecurityService {
 				} catch (e: Exception) {
 					Log.i(TAG, "Removing dead connection to $key")
 					activeSecurityConnections.remove(key)
+					securityConnections.remove(key)?.disconnect()
 				}
 			}
 		}
 	}
 
 	/**
+	 * Whether we are currently connecting to a security service
+	 */
+	fun isConnecting(brandHint: String = ""): Boolean {
+		return securityConnections.keys.any { it.startsWith(brandHint, ignoreCase = true) }
+	}
+	/**
 	 * Whether any BMW/Mini security services are connected
 	 */
 	fun isConnected(brandHint: String = ""): Boolean {
-		return activeSecurityConnections.keys.filter { it.startsWith(brandHint, ignoreCase = true) }.isNotEmpty()
+		return activeSecurityConnections.keys.any { it.startsWith(brandHint, ignoreCase = true) }
 	}
 
 	/**
