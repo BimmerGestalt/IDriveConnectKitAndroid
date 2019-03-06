@@ -103,15 +103,22 @@ object SecurityService {
 	 */
 	fun connect(context: Context) {
 		sourcePackageName = context.packageName
+		val packageManager = context.packageManager
 		verifyConnections() // clean out any dead connections that have been uninstalled
 		knownSecurityServices.forEach { (key, value) ->
-			if (!activeSecurityConnections.containsKey(key)) {
-				securityConnections.remove(key)?.disconnect()
-				val connection = SecurityConnectionListener(context, key, value)
-				securityConnections[key] = connection
-				connection.connect()
+			val packageName = value.substring(0, value.lastIndexOf('.'))
+			val intent = packageManager.getLaunchIntentForPackage(packageName)
+			if (intent == null) {
+				Log.i(TAG, "$key not installed")
 			} else {
-				Log.i(TAG, "Already connected to $key")
+				if (!activeSecurityConnections.containsKey(key)) {
+					securityConnections.remove(key)?.disconnect()
+					val connection = SecurityConnectionListener(context, key, value)
+					securityConnections[key] = connection
+					connection.connect()
+				} else {
+					Log.i(TAG, "Already connected to $key")
+				}
 			}
 		}
 	}
