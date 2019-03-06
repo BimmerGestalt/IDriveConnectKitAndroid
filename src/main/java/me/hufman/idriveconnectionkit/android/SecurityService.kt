@@ -9,31 +9,31 @@ import android.util.Log
 import com.bmwgroup.connected.internal.security.ICarSecurityService
 import java.lang.Exception
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 
 
 object SecurityService {
 	const val TAG = "IDriveSecurityService"
 
-	val knownSecurityServices = HashMap<String, String>()
-	val installedSecurityServices = HashSet<String>()   // what services are detected as installed
-	val securityConnections = HashMap<String, SecurityConnectionListener>() // listeners that are trying to connect
-	val activeSecurityConnections = HashMap<String, ICarSecurityService>()  // active proxy objects
+	// The list of known BMW/Mini apps that we can connect to
+	// We'll try to connect to any of them that are installed
+	val knownSecurityServices = mapOf(
+			"BMWClassicUSA" to "com.bmwgroup.connected.bmw.usa.SECURITY_SERVICE",
+			"MiniClassicUSA" to "com.bmwgroup.connected.mini.usa.SECURITY_SERVICE",
+			"BMWClassic" to "com.bmwgroup.connected.bmw.SECURITY_SERVICE",
+			"MiniClassic" to "com.bmwgroup.connected.mini.SECURITY_SERVICE",
+			"BMWConnectedNA" to "de.bmw.connected.na.SECURITY_SERVICE",
+			"MiniConnectedNA" to "de.mini.connected.na.SECURITY_SERVICE",
+			"BMWConnected" to "de.bmw.connected.SECURITY_SERVICE",
+			"MiniConnected" to "de.mini.connected.SECURITY_SERVICE"
+	)
+	val installedSecurityServices = Collections.synchronizedSet(HashSet<String>())   // what services are detected as installed
+	val securityConnections = ConcurrentHashMap<String, SecurityConnectionListener>() // listeners that are trying to connect
+	val activeSecurityConnections = ConcurrentHashMap<String, ICarSecurityService>()  // active proxy objects
 	var sourcePackageName: String = ""  // the default packageName
 	var listener = Runnable {}
 	var bmwCerts: ByteArray? = null
 
-	init {
-		// The list of known BMW/Mini apps that we can connect to
-		// We'll try to connect to each one
-		knownSecurityServices.put("BMWClassicUSA", "com.bmwgroup.connected.bmw.usa.SECURITY_SERVICE")
-		knownSecurityServices.put("MiniClassicUSA", "com.bmwgroup.connected.mini.usa.SECURITY_SERVICE")
-		knownSecurityServices.put("BMWClassic", "com.bmwgroup.connected.bmw.SECURITY_SERVICE")
-		knownSecurityServices.put("MiniClassic", "com.bmwgroup.connected.mini.SECURITY_SERVICE")
-		knownSecurityServices.put("BMWConnectedNA", "de.bmw.connected.na.SECURITY_SERVICE")
-		knownSecurityServices.put("MiniConnectedNA", "de.mini.connected.na.SECURITY_SERVICE")
-		knownSecurityServices.put("BMWConnected", "de.bmw.connected.SECURITY_SERVICE")
-		knownSecurityServices.put("MiniConnected", "de.mini.connected.SECURITY_SERVICE")
-	}
 
 	class SecurityConnectionListener(val context: Context, val name: String, val intentName: String) : ServiceConnection {
 		fun connect() {
