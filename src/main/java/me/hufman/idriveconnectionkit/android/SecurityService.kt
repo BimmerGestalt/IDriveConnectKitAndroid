@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.content.pm.PackageManager
 import android.os.IBinder
 import android.util.Log
 import com.bmwgroup.connected.internal.security.ICarSecurityService
@@ -107,10 +108,10 @@ object SecurityService {
 		verifyConnections() // clean out any dead connections that have been uninstalled
 		knownSecurityServices.forEach { (key, value) ->
 			val packageName = value.substring(0, value.lastIndexOf('.'))
-			val intent = packageManager.getLaunchIntentForPackage(packageName)
-			if (intent == null) {
-				Log.i(TAG, "$key not installed")
-			} else {
+			try {
+				// check if we have the package installed
+				packageManager.getPackageInfo(packageName, 0)
+
 				if (!activeSecurityConnections.containsKey(key)) {
 					securityConnections.remove(key)?.disconnect()
 					val connection = SecurityConnectionListener(context, key, value)
@@ -119,6 +120,8 @@ object SecurityService {
 				} else {
 					Log.i(TAG, "Already connected to $key")
 				}
+			} catch (e: PackageManager.NameNotFoundException) {
+				Log.i(TAG, "$key not installed")
 			}
 		}
 	}
