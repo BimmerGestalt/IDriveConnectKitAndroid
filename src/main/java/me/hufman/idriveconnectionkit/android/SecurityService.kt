@@ -74,7 +74,11 @@ object SecurityService {
 		}
 
 		fun disconnect() {
-			context.unbindService(this)
+			try {
+				context.unbindService(this)
+			} catch (e: Exception) {
+				// ignore
+			}
 			activeSecurityConnections.remove(name)
 			securityConnections.remove(name)
 			if (securityConnections.size == 0) {
