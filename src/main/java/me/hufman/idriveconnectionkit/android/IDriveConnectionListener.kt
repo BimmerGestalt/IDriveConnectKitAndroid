@@ -3,10 +3,13 @@ package me.hufman.idriveconnectionkit.android
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.util.Log
 
 class IDriveConnectionListener : BroadcastReceiver() {
 	private val TAG = "IDriveConnectionListen"
+	val INTENT_ATTACHED = "com.bmwgroup.connected.accessory.ACTION_CAR_ACCESSORY_ATTACHED"
+	val INTENT_DETACHED = "com.bmwgroup.connected.accessory.ACTION_CAR_ACCESSORY_DETACHED"
 
 	/**
 	 * The current connection status is available as static members
@@ -41,7 +44,7 @@ class IDriveConnectionListener : BroadcastReceiver() {
 	override fun onReceive(context: Context?, intent: Intent?) {
 		if (intent == null) return
 		Log.i(TAG, "Received car announcement: " + intent.action)
-		if (intent.action == "com.bmwgroup.connected.accessory.ACTION_CAR_ACCESSORY_ATTACHED") {
+		if (intent.action == INTENT_ATTACHED) {
 			isConnected = true
 			brand = intent.getStringExtra("EXTRA_BRAND")
 			host = intent.getStringExtra("EXTRA_HOST")
@@ -49,9 +52,17 @@ class IDriveConnectionListener : BroadcastReceiver() {
 			instanceId = intent.getIntExtra("EXTRA_INSTANCE_ID", -1)
 			if (callback != null) callback?.run()
 		}
-		if (intent.action == "com.bmwgroup.connected.accessory.ACTION_CAR_ACCESSORY_DETACHED") {
+		if (intent.action == INTENT_DETACHED) {
 			isConnected = false
 			if (callback != null) callback?.run()
 		}
+	}
+
+	fun subscribe(context: Context) {
+		context.registerReceiver(this, IntentFilter(INTENT_ATTACHED))
+		context.registerReceiver(this, IntentFilter(INTENT_DETACHED))
+	}
+	fun unsubscribe(context: Context) {
+		context.unregisterReceiver(this)
 	}
 }
