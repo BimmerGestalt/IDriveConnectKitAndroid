@@ -36,6 +36,16 @@ class IDriveConnectionListener : BroadcastReceiver() {
 		fun reset() {
 			isConnected = false
 		}
+
+		fun setConnection(brand: String, host: String, port: Int, instanceId: Int? = null) {
+			if (isConnected) return
+			isConnected = true
+			this.brand = brand
+			this.host = host
+			this.port = port
+			this.instanceId = instanceId
+			callback?.run()
+		}
 	}
 
 	/**
