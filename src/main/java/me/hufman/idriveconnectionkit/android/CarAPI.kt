@@ -72,9 +72,7 @@ object CarAPIDiscovery {
 	 */
 	fun cancelDiscovery(context: Context) {
 		if (broadcastReceiver != null) {
-			try {
-				context.unregisterReceiver(broadcastReceiver)
-			} catch (e: IllegalArgumentException) {}
+			context.unregisterReceiver(broadcastReceiver)
 			broadcastReceiver = null
 		}
 	}

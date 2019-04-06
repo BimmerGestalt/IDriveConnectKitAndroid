@@ -1,6 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="me.hufman.idriveconnectionkit.android">
 
+    <uses-feature android:name="android.hardware.usb.host" />
 <application>
     <receiver android:name=".IDriveConnectionListener">
         <intent-filter>
@@ -8,5 +9,37 @@
             <action android:name="com.bmwgroup.connected.accessory.ACTION_CAR_ACCESSORY_DETACHED" />
         </intent-filter>
     </receiver>
+
+    <!-- Start listening for IDrive Connections after a USB connection happens -->
+    <receiver android:name=".PlugConnectionListener">
+        <intent-filter>
+            <action android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED" />
+            <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+            <action android:name="android.hardware.usb.action.USB_STATE" />
+            <action android:name="android.bluetooth.device.action.ACL_CONNECTED" />
+        </intent-filter>
+    </receiver>
+
+    <service android:name=".IDriveListenerService">
+        <intent-filter>
+            <action android:name="me.hufman.idriveconnectionkit.android.IDriveListenerService.START" />
+        </intent-filter>
+    </service>
+
+    <!-- Register as a CarAPI app -->
+    <receiver
+        android:name=".CarAPIRegistrationListener"
+        android:exported="true">
+
+        <intent-filter>
+            <action
+                android:name="com.bmwgroup.connected.car.app.action.CONNECTED_APP_INSTALLED" />
+            <action
+                android:name="${applicationId}.CARAPI_CONNECTED" />
+            <action
+                android:name="${applicationId}.CARAPI_DISCONNECTED" />
+        </intent-filter>
+    </receiver>
+
 </application>
 </manifest>
