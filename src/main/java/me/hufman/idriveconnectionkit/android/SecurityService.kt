@@ -31,6 +31,7 @@ object SecurityService {
 	val installedSecurityServices = Collections.synchronizedSet(HashSet<String>())   // what services are detected as installed
 	val securityConnections = ConcurrentHashMap<String, SecurityConnectionListener>() // listeners that are trying to connect
 	val activeSecurityConnections = ConcurrentHashMap<String, ICarSecurityService>()  // active proxy objects
+	var success = false // we have successfully connected at least once, even if we have since disconnected
 	var sourcePackageName: String = ""  // the default packageName
 	var listener = Runnable {}
 	var bmwCerts: ByteArray? = null
@@ -62,6 +63,7 @@ object SecurityService {
 			Log.i(TAG, "Connected to security service $name")
 			val previousConnectionCount = activeSecurityConnections.size
 			activeSecurityConnections[name] = ICarSecurityService.Stub.asInterface(service)
+			success = true
 			if (previousConnectionCount == 0) {
 				listener.run()
 			}
