@@ -7,7 +7,6 @@ import android.content.Intent.FLAG_INCLUDE_STOPPED_PACKAGES
 import android.content.IntentFilter
 import android.net.Uri
 import android.util.Log
-import com.bmwgroup.connected.car.app.BrandType
 import java.io.InputStream
 import java.lang.IllegalArgumentException
 
@@ -15,21 +14,23 @@ import java.lang.IllegalArgumentException
 object CarAPIDiscovery {
 	const val TAG = "IDriveCarApiDiscovery"
 
+	const val INTENT_DISCOVERY = "com.bmwgroup.connected.car.app.action.CONNECTED_APP_INSTALLED"
+	const val INTENT_REGISTERING = "com.bmwgroup.connected.app.action.ACTION_CAR_APPLICATION_REGISTERING"
+
 	var broadcastReceiver: DiscoveryReceiver? = null
 	val discoveredApps: MutableMap<String, CarAppResources> = HashMap()
 	var callback: DiscoveryCallback? = null
 
 	class DiscoveryReceiver: BroadcastReceiver() {
-		val INTENT_NAME = "com.bmwgroup.connected.app.action.ACTION_CAR_APPLICATION_REGISTERING"
 		fun intentFilter(): IntentFilter {
-			return IntentFilter(INTENT_NAME)
+			return IntentFilter(INTENT_REGISTERING)
 		}
 		override fun onReceive(context: Context?, intent: Intent?) {
 			val id = intent?.getStringExtra("EXTRA_APPLICATION_ID")
 			if (context != null && id != null) {
 				Log.i(TAG, "Heard CarAPI announcement of: " + intent.getStringExtra("EXTRA_APPLICATION_ID"))
 				try {
-					val app = CarAPIClient.fromDiscoveryIntent(context, intent)
+					val app = CarAPIClient(context, CarAPIAppInfo.fromDiscoveryIntent(intent))
 					discoveredApps[id] = app
 					callback?.discovered(app)
 				} catch (e: Exception) {
@@ -54,7 +55,7 @@ object CarAPIDiscovery {
 		}
 
 		// trigger installed BMW Connected Ready apps to announce their presence
-		val discoveryIntent = Intent("com.bmwgroup.connected.car.app.action.CONNECTED_APP_INSTALLED")
+		val discoveryIntent = Intent(INTENT_DISCOVERY)
 		discoveryIntent.addFlags(FLAG_INCLUDE_STOPPED_PACKAGES)
 		context.sendBroadcast(discoveryIntent)
 		Log.i(TAG, "Soliciting CarAPI")
@@ -65,6 +66,13 @@ object CarAPIDiscovery {
 			val directedIntent = discoveryIntent.setPackage(it.activityInfo.packageName)
 			context.sendBroadcast(directedIntent)
 		}
+	}
+
+	/**
+	 * Announce this app
+	 */
+	fun announceApp(context: Context, appInfo: CarAPIAppInfo) {
+		context.sendBroadcast(appInfo.toIntent())
 	}
 
 	/**
@@ -80,37 +88,13 @@ object CarAPIDiscovery {
 	}
 }
 
-class CarAPIClient(val context: Context,
-                        val id: String,
-                        val title: String,
-                        val category: String,
-                        val version: String,
-                        val rhmiVersion: String?,
-                        val brandType: BrandType,
-                        val connectIntentName: String,
-                        val disconnectIntentName: String,
-                        val appIcon: ByteArray?): CarAppResources {
-
-	companion object {
-		fun fromDiscoveryIntent(context: Context, intent: Intent): CarAPIClient {
-			return CarAPIClient(context = context,
-			                    id = intent.getStringExtra("EXTRA_APPLICATION_ID"),
-			                    title = intent.getStringExtra("EXTRA_APPLICATION_TITLE"),
-			                    category = intent.getStringExtra("EXTRA_APPLICATION_CATEGORY"),
-			                    version = intent.getStringExtra("EXTRA_APPLICATION_VERSION"),
-			                    rhmiVersion = intent.getStringExtra("EXTRA_RHMI_VERSION"),
-			                    brandType = intent.getSerializableExtra("EXTRA_APPLICATION_BRAND") as BrandType,
-			                    connectIntentName = intent.getStringExtra("EXTRA_APPLICATION_CONNECT_RECEIVER_ACTION"),
-			                    disconnectIntentName = intent.getStringExtra("EXTRA_APPLICATION_DISCONNECT_RECEIVER_ACTION"),
-			                    appIcon = intent.getByteArrayExtra("EXTRA_APPLICATION_APP_ICON"))
-		}
-	}
+class CarAPIClient(val context: Context, val appInfo: CarAPIAppInfo): CarAppResources {
 
 	/**
 	 * Opens the requested file from the CarAPI content provider
 	 */
 	fun openContent(path: String): InputStream? {
-		val providerModule = "content://" + id + ".provider"
+		val providerModule = "content://${appInfo.id}.provider"
 		val uri = providerModule + "/" + path.trimStart('/')
 		return context.contentResolver.openAssetFileDescriptor(Uri.parse(uri), "r")?.createInputStream()
 	}
@@ -119,7 +103,7 @@ class CarAPIClient(val context: Context,
 	 * Gets the app-specific cert to sign into the car with SAS
 	 */
 	override fun getAppCertificate(brand: String): InputStream? {
-		return openContent("carapplications/" + id + "/" + id + ".p7b")
+		return openContent("carapplications/${appInfo.id}/${appInfo.id}.p7b")
 	}
 
 	/**
@@ -127,7 +111,7 @@ class CarAPIClient(val context: Context,
 	 * May be missing, if the app uses the default CarAPI layouts
 	 */
 	override fun getUiDescription(brand: String): InputStream? {
-		return openContent("carapplications/" + id + "/rhmi/ui_description.xml")
+		return openContent("carapplications/${appInfo.id}/rhmi/ui_description.xml")
 	}
 
 	/**
@@ -135,7 +119,7 @@ class CarAPIClient(val context: Context,
 	 * @param brand should be {bmw,mini,common}
 	 */
 	override fun getImagesDB(brand: String): InputStream? {
-		return openContent("carapplications/" + id + "/rhmi/" + brand + "/images.zip")
+		return openContent("carapplications/${appInfo.id}/rhmi/" + brand + "/images.zip")
 	}
 
 	/**
@@ -143,10 +127,10 @@ class CarAPIClient(val context: Context,
 	 * @param brand should be {bmw,mini,common}
 	 */
 	override fun getTextsDB(brand: String): InputStream? {
-		return openContent("carapplications/" + id + "/rhmi/" + brand + "/texts.zip")
+		return openContent("carapplications${appInfo.id}/rhmi/" + brand + "/texts.zip")
 	}
 
 	override fun toString(): String {
-		return "$id: $title - $category $version"
+		return "${appInfo.id}: ${appInfo.title} - ${appInfo.category} ${appInfo.version}"
 	}
 }

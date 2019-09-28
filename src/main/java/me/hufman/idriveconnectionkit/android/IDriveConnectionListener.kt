@@ -8,8 +8,6 @@ import android.util.Log
 
 class IDriveConnectionListener : BroadcastReceiver() {
 	private val TAG = "IDriveConnectionListen"
-	val INTENT_ATTACHED = "com.bmwgroup.connected.accessory.ACTION_CAR_ACCESSORY_ATTACHED"
-	val INTENT_DETACHED = "com.bmwgroup.connected.accessory.ACTION_CAR_ACCESSORY_DETACHED"
 
 	/**
 	 * The current connection status is available as static members
@@ -21,6 +19,9 @@ class IDriveConnectionListener : BroadcastReceiver() {
 	 * callback is called after the connection state changes
 	 */
 	companion object {
+		const val INTENT_ATTACHED = "com.bmwgroup.connected.accessory.ACTION_CAR_ACCESSORY_ATTACHED"
+		const val INTENT_DETACHED = "com.bmwgroup.connected.accessory.ACTION_CAR_ACCESSORY_DETACHED"
+
 		var isConnected: Boolean = false
 			private set
 		var brand: String? = null

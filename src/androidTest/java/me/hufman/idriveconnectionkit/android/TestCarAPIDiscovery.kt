@@ -40,7 +40,7 @@ class TestCarAPIDiscovery {
 	private val lock = Semaphore(0) // wait for the CarAPI to discover a specific app
 	class WaitForCarAPI(val appId: String, val lock: Semaphore): CarAPIDiscovery.DiscoveryCallback {
 		override fun discovered(app: CarAPIClient) {
-			if (app.id == appId)
+			if (app.appInfo.id == appId)
 				lock.release()
 		}
 	}
@@ -58,7 +58,8 @@ class TestCarAPIDiscovery {
 		}
 		assertTrue(CarAPIDiscovery.discoveredApps.containsKey("com.clearchannel.iheartradio.connect"))
 
-		val app = CarAPIDiscovery.discoveredApps["com.clearchannel.iheartradio.connect"] as CarAPIClient
+		val appClient = CarAPIDiscovery.discoveredApps["com.clearchannel.iheartradio.connect"] as CarAPIClient
+		val app = appClient.appInfo
 		assertEquals("com.clearchannel.iheartradio.connect", app.id)
 		assertEquals("iHeartRadio", app.title)
 		assertEquals("Radio", app.category)
@@ -69,12 +70,12 @@ class TestCarAPIDiscovery {
 		assertNotNull(app.disconnectIntentName)
 
 		// try to fetch resources from it
-		assertNotNull(app.getAppCertificate())
-		assertNull(app.getUiDescription())
-		assertNotNull(app.getTextsDB("bmw"))
-		assertNotNull(app.getImagesDB("bmw"))
+		assertNotNull(appClient.getAppCertificate())
+		assertNull(appClient.getUiDescription())
+		assertNotNull(appClient.getTextsDB("bmw"))
+		assertNotNull(appClient.getImagesDB("bmw"))
 
-		val certIS = app.getAppCertificate()
+		val certIS = appClient.getAppCertificate()
 		val cert = loadInputStream(certIS as InputStream)
 		assertEquals(6299, cert.size)
 
