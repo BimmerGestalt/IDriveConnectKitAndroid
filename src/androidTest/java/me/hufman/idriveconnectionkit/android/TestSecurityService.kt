@@ -3,6 +3,7 @@ package me.hufman.idriveconnectionkit.android
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
 import junit.framework.Assert.*
+import me.hufman.idriveconnectionkit.android.security.SecurityAccess
 import org.awaitility.Awaitility.await
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -13,49 +14,50 @@ import java.util.concurrent.TimeUnit
 
 @RunWith(AndroidJUnit4::class)
 class TestSecurityService {
-	var callbackTriggered = false
 
 	@Test
 	fun testCarChallengeResponse() {
+		var callbackTriggered = false
 		val appContext = InstrumentationRegistry.getTargetContext()
+		val securityAccess = SecurityAccess(appContext, Runnable { callbackTriggered = true })
 
 		// test that we can connect to a security service
 		callbackTriggered = false
-		SecurityService.subscribe(Runnable { callbackTriggered = true })
-		SecurityService.connect(appContext)
-		await().until({ SecurityService.isConnected() })
+		securityAccess.connect()
+		await().until { securityAccess.isConnected() }
 		assertEquals("Callback successfully triggered", true, callbackTriggered)
-
-		// test that the callback triggers again after already being connected
-		callbackTriggered = false
-		SecurityService.subscribe(Runnable { callbackTriggered = true })
-		assertEquals("Callback successfully triggered again", true, callbackTriggered)
 
 		// test that it signs a challenge for us
 		val challenge = byteArrayOf(0x6d, 0x58, 0x5f, 0x14,
 		                            0x72, 0x72, 0x19, 0x75,
 		                            0x4e, 0x73, 0x19, 0x38,
 		                            0x61, 0x2f, 0x50, 0x78)
-		var response = SecurityService.signChallenge(appContext.packageName, "TestSecurityServiceJava", challenge)
+		var response = securityAccess.signChallenge("TestSecurityServiceJava", challenge)
 		assertEquals("Received a challenge response", 512, response.size)
 		assertEquals("Received the correct challenge response", 0x15, response[0])
 
 		// test that an invalid challenge is not accepted
 		try {
-			response = SecurityService.signChallenge(appContext.packageName, "TestSecurityServiceJava", ByteArray(0))
+			response = securityAccess.signChallenge("TestSecurityServiceJava", ByteArray(0))
 			fail("Invalid challenge was signed, returned a response of size " + response.size)
 		} catch (e: SecurityException) {
 			assert(e.message!!.contains("Error while calling native function signChallenge"))
 		}
+
+		// test that the callback is triggered when disconnecting
+		callbackTriggered = false
+		securityAccess.disconnect()
+		assertEquals("Callback successfully triggered", true, callbackTriggered)
 	}
 
 	@Test
 	fun testBMWCertificate() {
 		val appContext = InstrumentationRegistry.getTargetContext()
+		val securityAccess = SecurityAccess(appContext)
 
-		SecurityService.connect(appContext)
-		await().until({ SecurityService.isConnected() })
-		val bmwCert = SecurityService.fetchBMWCerts()
+		securityAccess.connect()
+		await().until { securityAccess.isConnected() }
+		val bmwCert = securityAccess.fetchBMWCerts()
 		val parsedCerts = CertMangling.loadCerts(bmwCert)
 		assertNotNull(parsedCerts)
 		val certNames = parsedCerts?.mapNotNull {
@@ -70,6 +72,7 @@ class TestSecurityService {
 	@Test
 	fun testCertMangling() {
 		val appContext = InstrumentationRegistry.getTargetContext()
+		val securityAccess = SecurityAccess(appContext)
 
 		// load up app cert
 		CarAPIDiscovery.discoverApps(appContext, TestCarAPIDiscovery.WaitForCarAPI("com.clearchannel.iheartradio.connect", lock))
@@ -80,9 +83,9 @@ class TestSecurityService {
 		val appCert = TestCarAPIDiscovery.loadInputStream(app.getAppCertificate() as InputStream)
 
 		// load up bmw cert
-		SecurityService.connect(appContext)
-		await().until({ SecurityService.isConnected() })
-		val bmwCert = SecurityService.fetchBMWCerts()
+		securityAccess.connect()
+		await().until { securityAccess.isConnected() }
+		val bmwCert = securityAccess.fetchBMWCerts()
 		val combinedCert = CertMangling.mergeBMWCert(appCert, bmwCert)
 
 		val parsedCerts = CertMangling.loadCerts(combinedCert)

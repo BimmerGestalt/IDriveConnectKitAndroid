@@ -18,6 +18,8 @@ class TestConnectionListener {
 	@Test
 	fun testConnection() {
 		val appContext = InstrumentationRegistry.getTargetContext()
+		val instance = IDriveConnectionListener()
+		instance.subscribe(appContext)
 
 		assertFalse(IDriveConnectionListener.isConnected)
 		assertNull(IDriveConnectionListener.brand)
@@ -62,5 +64,7 @@ class TestConnectionListener {
 		assertEquals("127.0.0.1", IDriveConnectionListener.host)
 		assertEquals(1234, IDriveConnectionListener.port)
 		assertEquals(13, IDriveConnectionListener.instanceId)
+
+		instance.unsubscribe(appContext)
 	}
 }
