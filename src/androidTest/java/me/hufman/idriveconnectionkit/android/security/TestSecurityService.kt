@@ -1,9 +1,12 @@
-package me.hufman.idriveconnectionkit.android
+package me.hufman.idriveconnectionkit.android.security
 
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
 import junit.framework.Assert.*
-import me.hufman.idriveconnectionkit.android.security.SecurityAccess
+import me.hufman.idriveconnectionkit.android.CarAPIClient
+import me.hufman.idriveconnectionkit.android.CarAPIDiscovery
+import me.hufman.idriveconnectionkit.android.CertMangling
+import me.hufman.idriveconnectionkit.android.TestCarAPIDiscovery
 import org.awaitility.Awaitility.await
 import org.junit.Test
 import org.junit.runner.RunWith
