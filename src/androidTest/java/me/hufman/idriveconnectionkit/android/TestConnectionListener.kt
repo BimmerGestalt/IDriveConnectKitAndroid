@@ -5,10 +5,10 @@ import android.content.Intent
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
 import junit.framework.Assert.*
+import org.awaitility.Awaitility.await
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.concurrent.Semaphore
-import java.util.concurrent.TimeUnit
 
 @RunWith(AndroidJUnit4::class)
 class TestConnectionListener {
@@ -28,8 +28,9 @@ class TestConnectionListener {
 		assertNull(IDriveConnectionListener.instanceId)
 
 		// prepare listener
+		var listenerCalled = false
 		IDriveConnectionListener.callback = Runnable {
-			lock.release()
+			listenerCalled = true
 		}
 
 		// now the car connects
@@ -41,25 +42,22 @@ class TestConnectionListener {
 		connectionIntent.putExtra("EXTRA_INSTANCE_ID", 13)
 		appContext.sendBroadcast(connectionIntent)
 
-		// wait for the app to notice
-		lock.tryAcquire(10000, TimeUnit.MILLISECONDS)
-
 		// verify the handling
-		assertTrue(IDriveConnectionListener.isConnected)
+		await().untilAsserted {assertTrue(IDriveConnectionListener.isConnected)}
+		assertTrue(listenerCalled)
 		assertEquals("mini", IDriveConnectionListener.brand)
 		assertEquals("127.0.0.1", IDriveConnectionListener.host)
 		assertEquals(1234, IDriveConnectionListener.port)
 		assertEquals(13, IDriveConnectionListener.instanceId)
 
 		// now the car detaches
+		listenerCalled = false
 		val disconnectionIntent = Intent("com.bmwgroup.connected.accessory.ACTION_CAR_ACCESSORY_DETACHED")
 		appContext.sendBroadcast(disconnectionIntent)
 
-		// wait for the app to notice
-		lock.tryAcquire(10000, TimeUnit.MILLISECONDS)
-
 		// verify the handling
-		assertFalse(IDriveConnectionListener.isConnected)
+		await().untilAsserted {assertFalse(IDriveConnectionListener.isConnected)}
+		assertTrue(listenerCalled)
 		assertEquals("mini", IDriveConnectionListener.brand)
 		assertEquals("127.0.0.1", IDriveConnectionListener.host)
 		assertEquals(1234, IDriveConnectionListener.port)

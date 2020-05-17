@@ -9,7 +9,9 @@ import android.util.Log
 import com.bmwgroup.connected.internal.security.ICarSecurityService
 import me.hufman.idriveconnectionkit.android.security.SecurityAccess.Companion.TAG
 import java.lang.Exception
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.collections.ArrayList
 
 class SecurityServiceManager(val context: Context, val installedSecurityServices: Set<KnownSecurityServices>, var listener: Runnable = Runnable {}) {
 	val securityConnections = ConcurrentHashMap<KnownSecurityServices, SecurityConnectionListener>() // listeners that are trying to connect
@@ -31,7 +33,8 @@ class SecurityServiceManager(val context: Context, val installedSecurityServices
 	}
 
 	fun disconnect() {
-		connectedSecurityServices.keys.forEach { key ->
+		val connections = LinkedList(securityConnections.keys)
+		connections.forEach { key ->
 			securityConnections.remove(key)?.disconnect()
 		}
 	}

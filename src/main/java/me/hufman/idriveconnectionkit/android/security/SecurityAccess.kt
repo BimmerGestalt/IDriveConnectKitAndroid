@@ -55,7 +55,9 @@ class SecurityAccess(val context: Context, var listener: Runnable = Runnable {})
 	 * Whether we are currently connecting to a security service
 	 */
 	fun isConnecting(brandHint: String = ""): Boolean {
-		return securityServiceManager.securityConnections.keys.any { it.name.startsWith(brandHint, ignoreCase = true) }
+		val connected = securityServiceManager.connectedSecurityServices.keys
+		val pending = securityServiceManager.securityConnections.keys - connected
+		return pending.isNotEmpty() && pending.any { it.name.startsWith(brandHint, ignoreCase = true) }
 	}
 	/**
 	 * Whether any BMW/Mini security services are connected
