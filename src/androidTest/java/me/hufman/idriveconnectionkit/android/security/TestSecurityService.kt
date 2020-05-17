@@ -43,7 +43,7 @@ class TestSecurityService {
 		try {
 			response = securityAccess.signChallenge("TestSecurityServiceJava", ByteArray(0))
 			fail("Invalid challenge was signed, returned a response of size " + response.size)
-		} catch (e: SecurityException) {
+		} catch (e: IllegalArgumentException) {
 			assert(e.message!!.contains("Error while calling native function signChallenge"))
 		}
 

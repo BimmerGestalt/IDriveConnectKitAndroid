@@ -2,6 +2,7 @@ package me.hufman.idriveconnectionkit.android.security
 
 import android.content.Context
 import android.content.pm.PackageManager
+import java.lang.reflect.InvocationTargetException
 import java.util.*
 
 class SecurityAccess(val context: Context, var listener: Runnable = Runnable {}) {
@@ -68,22 +69,32 @@ class SecurityAccess(val context: Context, var listener: Runnable = Runnable {})
 	 * Sign the given challenge from the car, returning a response to login with
 	 * The challenge should be 16 bytes long
 	 * The appName doesn't really matter
-	 * It will throw SecurityException for invalid challenges
+	 * It will throw IllegalArgumentException for invalid challenges
 	 */
-	@Throws(SecurityException::class)
+	@Throws(IllegalArgumentException::class)
 	fun signChallenge(appName: String = "", challenge: ByteArray):ByteArray {
 		synchronized(this) {
 			val connection = securityServiceManager.connectedSecurityServices.values.firstOrNull() ?:
 					securityModuleManager.connectedSecurityModules.values.first()
-			val handle = connection.createSecurityContext(customPackageName ?: context.packageName, appName)
-			val response = connection.signChallenge(handle, challenge)
-			connection.releaseSecurityContext(handle)
-			if (response?.size == 0) {
-				// The Classic apps raise SecurityException for invalid challenges
-				// The new apps return ByteArray(0), so we should raise ourselves
-				throw SecurityException("Invalid challenge")
+			try {
+				val handle = connection.createSecurityContext(customPackageName
+						?: context.packageName, appName)
+				val response = connection.signChallenge(handle, challenge)
+				connection.releaseSecurityContext(handle)
+
+				if (response?.size == 0) {
+					// The Classic apps raise SecurityException for invalid challenges
+					// The new apps return ByteArray(0), so we should raise ourselves
+					throw IllegalArgumentException("Invalid challenge")
+				}
+				return response
+			} catch (e: SecurityException) {
+				// Sometimes the JNI exception gets converted to SecurityException
+				throw java.lang.IllegalArgumentException("Invalid challenge")
+			} catch (e: InvocationTargetException) {
+				// Sometimes the JNI exception comes through
+				throw java.lang.IllegalArgumentException("Invalid challenge")
 			}
-			return response
 		}
 	}
 
