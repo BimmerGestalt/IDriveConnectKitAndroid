@@ -2,7 +2,6 @@ package me.hufman.idriveconnectionkit.android.security
 
 import android.content.Context
 import android.content.pm.PackageManager
-import android.util.Log
 import java.util.*
 
 class SecurityAccess(val context: Context, var listener: Runnable = Runnable {}) {
@@ -15,7 +14,8 @@ class SecurityAccess(val context: Context, var listener: Runnable = Runnable {})
 	var customPackageName: String? = null  // an overridden packageName, instead of using the context packageName
 	var bmwCerts: ByteArray? = null
 
-	val securityServiceManager = SecurityServiceManager(context, installedSecurityServices, listener)
+	val securityServiceManager = SecurityServiceManager(context, installedSecurityServices, Runnable {listener.run()})
+	val securityModuleManager = SecurityModuleManager(context, installedSecurityServices)
 
 	init {
 		discover()
@@ -30,7 +30,6 @@ class SecurityAccess(val context: Context, var listener: Runnable = Runnable {})
 				packageManager.getPackageInfo(packageName, 0)
 				installedSecurityServices.add(securityService)
 			} catch (e: PackageManager.NameNotFoundException) {
-				Log.i(TAG, "$securityService not installed")
 				installedSecurityServices.remove(securityService)
 			}
 		}
@@ -40,6 +39,11 @@ class SecurityAccess(val context: Context, var listener: Runnable = Runnable {})
 		discover()
 
 		securityServiceManager.connect()
+		securityModuleManager.connect()
+
+		if (securityModuleManager.connectedSecurityModules.isNotEmpty()) {
+			listener.run()
+		}
 	}
 
 	fun disconnect() {
@@ -56,7 +60,8 @@ class SecurityAccess(val context: Context, var listener: Runnable = Runnable {})
 	 * Whether any BMW/Mini security services are connected
 	 */
 	fun isConnected(brandHint: String = ""): Boolean {
-		return securityServiceManager.connectedSecurityServices.keys.any { it.name.startsWith(brandHint, ignoreCase = true) }
+		return securityServiceManager.connectedSecurityServices.keys.any { it.name.startsWith(brandHint, ignoreCase = true) } ||
+				securityModuleManager.connectedSecurityModules.keys.any { it.name.startsWith(brandHint, ignoreCase = true) }
 	}
 
 	/**
@@ -68,7 +73,8 @@ class SecurityAccess(val context: Context, var listener: Runnable = Runnable {})
 	@Throws(SecurityException::class)
 	fun signChallenge(appName: String = "", challenge: ByteArray):ByteArray {
 		synchronized(this) {
-			val connection = securityServiceManager.connectedSecurityServices.values.first()
+			val connection = securityServiceManager.connectedSecurityServices.values.firstOrNull() ?:
+					securityModuleManager.connectedSecurityModules.values.first()
 			val handle = connection.createSecurityContext(customPackageName ?: context.packageName, appName)
 			val response = connection.signChallenge(handle, challenge)
 			connection.releaseSecurityContext(handle)
@@ -90,7 +96,9 @@ class SecurityAccess(val context: Context, var listener: Runnable = Runnable {})
 			var bmwCerts = this.bmwCerts
 			if (bmwCerts != null) return bmwCerts
 			val connection = securityServiceManager.connectedSecurityServices.entries.firstOrNull { it.key.name.startsWith(brandHint, ignoreCase = true) }?.value ?:
-				securityServiceManager.connectedSecurityServices.values.first()
+				securityModuleManager.connectedSecurityModules.entries.firstOrNull { it.key.name.startsWith(brandHint, ignoreCase = true) }?.value ?:
+				securityServiceManager.connectedSecurityServices.values.firstOrNull() ?:
+				securityModuleManager.connectedSecurityModules.values.first()
 			val handle = connection.createSecurityContext(customPackageName ?: context.packageName, appName)
 			bmwCerts = connection.loadAppCert(handle)
 			this.bmwCerts = bmwCerts

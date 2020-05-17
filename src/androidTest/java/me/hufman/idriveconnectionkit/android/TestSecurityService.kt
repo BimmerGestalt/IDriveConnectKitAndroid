@@ -46,8 +46,11 @@ class TestSecurityService {
 
 		// test that the callback is triggered when disconnecting
 		callbackTriggered = false
+		var callbackTriggered2 = false
+		securityAccess.listener = Runnable { callbackTriggered2 = true}
 		securityAccess.disconnect()
-		assertEquals("Callback successfully triggered", true, callbackTriggered)
+		assertEquals("Callback successfully not triggered", false, callbackTriggered)
+		assertEquals("Callback successfully triggered", true, callbackTriggered2)
 	}
 
 	@Test
