@@ -9,6 +9,20 @@ class SecurityAccess(val context: Context, var listener: Runnable = Runnable {})
 
 	companion object {
 		const val TAG = "IDriveSecurity"
+
+		private var instance: SecurityAccess? = null
+		fun getInstance(context: Context): SecurityAccess {
+			synchronized(SecurityAccess::javaClass) {
+				val instance = instance
+				return if (instance == null) {
+					val newInstance = SecurityAccess(context)
+					this.instance = newInstance
+					newInstance
+				} else {
+					instance
+				}
+			}
+		}
 	}
 
 	val installedSecurityServices = Collections.synchronizedSet(HashSet<KnownSecurityServices>())   // what services are detected as installed
@@ -17,10 +31,6 @@ class SecurityAccess(val context: Context, var listener: Runnable = Runnable {})
 
 	val securityServiceManager = SecurityServiceManager(context, installedSecurityServices, Runnable {listener.run()})
 	val securityModuleManager = SecurityModuleManager(context, installedSecurityServices)
-
-	init {
-		discover()
-	}
 
 	fun discover() {
 		val packageManager = context.packageManager

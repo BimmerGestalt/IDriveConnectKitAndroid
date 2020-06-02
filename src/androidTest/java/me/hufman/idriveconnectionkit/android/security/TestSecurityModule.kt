@@ -15,6 +15,7 @@ class TestSecurityModule {
 	fun testManager() {
 		val appContext = InstrumentationRegistry.getTargetContext()
 		val securityAccess = SecurityAccess(appContext)
+		securityAccess.discover()
 
 		val manager = SecurityModuleManager(appContext, securityAccess.installedSecurityServices)
 		manager.connect()
@@ -41,6 +42,7 @@ class TestSecurityModule {
 	fun testBMWCertificate() {
 		val appContext = InstrumentationRegistry.getTargetContext()
 		val securityAccess = SecurityAccess(appContext)
+		securityAccess.discover()
 
 		val manager = SecurityModuleManager(appContext, securityAccess.installedSecurityServices)
 		manager.connect()
@@ -59,7 +61,7 @@ class TestSecurityModule {
 				CertMangling.getCN(it)
 			} ?: LinkedList()
 			assertEquals(2, certNames.size)
-			assertTrue(certNames.containsAll(arrayListOf("a4a_app_Android_FeatureCertificate_PIA_KML_VOICE_00.00.01", "a4a_app_BMWTouchCommand_Connection_00.00.10")))
+			assertArrayEquals(arrayOf("a4a_app_Android_FeatureCertificate_PIA_KML_VOICE_00.00.01", "a4a_app_BMWTouchCommand_Connection_00.00.10"), certNames.toTypedArray().sortedArray())
 		}
 	}
 
