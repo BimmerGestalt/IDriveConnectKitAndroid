@@ -50,6 +50,18 @@ class IDriveConnectionListener : BroadcastReceiver() {
 		}
 	}
 
+	// accessor methods to allow an object to be passed around
+	val isConnected: Boolean
+		get() = IDriveConnectionListener.isConnected
+	val brand: String?
+		get() = IDriveConnectionListener.brand
+	val host: String?
+		get() = IDriveConnectionListener.host
+	val port: Int?
+		get() = IDriveConnectionListener.port
+	val instanceId: Int?
+		get() = IDriveConnectionListener.instanceId
+
 	/**
 	 * Listen for status updates about whether the car is connected
 	 */
@@ -57,15 +69,15 @@ class IDriveConnectionListener : BroadcastReceiver() {
 		if (intent == null) return
 		Log.i(TAG, "Received car announcement: " + intent.action)
 		if (intent.action == INTENT_ATTACHED) {
-			isConnected = true
-			brand = intent.getStringExtra("EXTRA_BRAND")
-			host = intent.getStringExtra("EXTRA_HOST")
-			port = intent.getIntExtra("EXTRA_PORT", -1)
-			instanceId = intent.getIntExtra("EXTRA_INSTANCE_ID", -1)
+			IDriveConnectionListener.isConnected = true
+			IDriveConnectionListener.brand = intent.getStringExtra("EXTRA_BRAND")
+			IDriveConnectionListener.host = intent.getStringExtra("EXTRA_HOST")
+			IDriveConnectionListener.port = intent.getIntExtra("EXTRA_PORT", -1)
+			IDriveConnectionListener.instanceId = intent.getIntExtra("EXTRA_INSTANCE_ID", -1)
 			if (callback != null) callback?.run()
 		}
 		if (intent.action == INTENT_DETACHED) {
-			isConnected = false
+			IDriveConnectionListener.isConnected = false
 			if (callback != null) callback?.run()
 		}
 	}
