@@ -50,7 +50,7 @@ class SecurityAccess(val context: Context, var listener: Runnable = Runnable {})
 		discover()
 
 		securityServiceManager.connect()
-		securityModuleManager.connect()
+//		securityModuleManager.connect() // TODO this is buggy sometimes
 
 		if (securityModuleManager.connectedSecurityModules.isNotEmpty()) {
 			listener.run()
