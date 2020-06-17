@@ -50,15 +50,16 @@ class SecurityAccess(val context: Context, var listener: Runnable = Runnable {})
 		discover()
 
 		securityServiceManager.connect()
-//		securityModuleManager.connect() // TODO this is buggy sometimes
+		securityModuleManager.connect()
 
-		if (securityModuleManager.connectedSecurityModules.isNotEmpty()) {
+		if (securityModuleManager.isConnected()) {
 			listener.run()
 		}
 	}
 
 	fun disconnect() {
 		securityServiceManager.disconnect()
+		securityModuleManager.disconnect()
 	}
 
 	/**
@@ -73,8 +74,8 @@ class SecurityAccess(val context: Context, var listener: Runnable = Runnable {})
 	 * Whether any BMW/Mini security services are connected
 	 */
 	fun isConnected(brandHint: String = ""): Boolean {
-		return securityServiceManager.connectedSecurityServices.keys.any { it.name.startsWith(brandHint, ignoreCase = true) } ||
-				securityModuleManager.connectedSecurityModules.keys.any { it.name.startsWith(brandHint, ignoreCase = true) }
+		return securityModuleManager.isConnected() ||
+				securityServiceManager.connectedSecurityServices.keys.any { it.name.startsWith(brandHint, ignoreCase = true) }
 	}
 
 	/**
@@ -87,7 +88,7 @@ class SecurityAccess(val context: Context, var listener: Runnable = Runnable {})
 	fun signChallenge(appName: String = "", challenge: ByteArray):ByteArray {
 		synchronized(this) {
 			val connection = securityServiceManager.connectedSecurityServices.values.firstOrNull() ?:
-					securityModuleManager.connectedSecurityModules.values.first()
+				securityModuleManager.getConnection()!!
 			try {
 				val handle = connection.createSecurityContext(customPackageName
 						?: context.packageName, appName)
@@ -119,9 +120,8 @@ class SecurityAccess(val context: Context, var listener: Runnable = Runnable {})
 			var bmwCerts = this.bmwCerts
 			if (bmwCerts != null) return bmwCerts
 			val connection = securityServiceManager.connectedSecurityServices.entries.firstOrNull { it.key.name.startsWith(brandHint, ignoreCase = true) }?.value ?:
-				securityModuleManager.connectedSecurityModules.entries.firstOrNull { it.key.name.startsWith(brandHint, ignoreCase = true) }?.value ?:
 				securityServiceManager.connectedSecurityServices.values.firstOrNull() ?:
-				securityModuleManager.connectedSecurityModules.values.first()
+				securityModuleManager.getConnection()!!
 			val handle = connection.createSecurityContext(customPackageName ?: context.packageName, appName)
 			bmwCerts = connection.loadAppCert(handle)
 			this.bmwCerts = bmwCerts
