@@ -21,6 +21,7 @@ class IDriveConnectionListener : BroadcastReceiver() {
 	companion object {
 		const val INTENT_ATTACHED = "com.bmwgroup.connected.accessory.ACTION_CAR_ACCESSORY_ATTACHED"
 		const val INTENT_DETACHED = "com.bmwgroup.connected.accessory.ACTION_CAR_ACCESSORY_DETACHED"
+		const val INTENT_BCL_REPORT = "com.bmwgroup.connected.accessory.ACTION_CAR_ACCESSORY_INFO"
 
 		var isConnected: Boolean = false
 			private set
@@ -67,8 +68,8 @@ class IDriveConnectionListener : BroadcastReceiver() {
 	 */
 	override fun onReceive(context: Context?, intent: Intent?) {
 		if (intent == null) return
-		Log.i(TAG, "Received car announcement: " + intent.action)
 		if (intent.action == INTENT_ATTACHED) {
+			Log.i(TAG, "Received car announcement: " + intent.action)
 			IDriveConnectionListener.isConnected = true
 			IDriveConnectionListener.brand = intent.getStringExtra("EXTRA_BRAND")
 			IDriveConnectionListener.host = intent.getStringExtra("EXTRA_HOST")
@@ -77,14 +78,26 @@ class IDriveConnectionListener : BroadcastReceiver() {
 			if (callback != null) callback?.run()
 		}
 		if (intent.action == INTENT_DETACHED) {
+			Log.i(TAG, "Received car announcement: " + intent.action)
 			IDriveConnectionListener.isConnected = false
 			if (callback != null) callback?.run()
+		}
+		if (intent.action == INTENT_BCL_REPORT) {
+			if (IDriveConnectionListener.instanceId == null) {  // try to get InstanceId from the BCL Report
+				val state = intent.getStringExtra("EXTRA_STATE")
+				val instanceId = intent.getShortExtra("EXTRA_INSTANCE_ID", 0)
+				if (state == "WORKING" && instanceId > 0) {
+					Log.i(TAG, "Recovered instance ID from BCL report: $instanceId")
+					IDriveConnectionListener.instanceId = instanceId.toInt()
+				}
+			}
 		}
 	}
 
 	fun subscribe(context: Context) {
 		context.registerReceiver(this, IntentFilter(INTENT_ATTACHED))
 		context.registerReceiver(this, IntentFilter(INTENT_DETACHED))
+		context.registerReceiver(this, IntentFilter(INTENT_BCL_REPORT))
 	}
 	fun unsubscribe(context: Context) {
 		context.unregisterReceiver(this)
