@@ -8,28 +8,48 @@ import junit.framework.Assert.*
 import org.awaitility.Awaitility.await
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.util.concurrent.Semaphore
 
 @RunWith(AndroidJUnit4::class)
 class TestConnectionListener {
 
-	private val lock = Semaphore(0) // wait for the CarAPI to discover a specific app
+	@Test
+	fun testListenerCallback() {
+		var listenerCount = 0
+		var listenerCalled = false
+		run {
+			val instance = IDriveConnectionObserver {
+				listenerCalled = true
+			}
+			assertTrue(IDriveConnectionListener.listeners.isNotEmpty())
+			listenerCount = IDriveConnectionListener.listeners.size
+			IDriveConnectionStatus.reset()
+			assertTrue(listenerCalled)
+		}
+
+		await().untilAsserted {
+			// create garbage to collect, Android will skip otherwise
+			val value = ByteArray(1024*1024)
+			System.gc()
+			assertEquals(listenerCount - 1, IDriveConnectionListener.listeners.size)
+//			assertTrue(IDriveConnectionStatus.listeners.isEmpty())
+		}
+	}
 
 	@Test
 	fun testConnection() {
 		val appContext = InstrumentationRegistry.getTargetContext()
-		val instance = IDriveConnectionListener()
+		val instance = IDriveConnectionReceiver()
 		instance.subscribe(appContext)
 
-		assertFalse(IDriveConnectionListener.isConnected)
-		assertNull(IDriveConnectionListener.brand)
-		assertNull(IDriveConnectionListener.host)
-		assertNull(IDriveConnectionListener.port)
-		assertNull(IDriveConnectionListener.instanceId)
+		assertFalse(IDriveConnectionStatus.isConnected)
+		assertNull(IDriveConnectionStatus.brand)
+		assertNull(IDriveConnectionStatus.host)
+		assertNull(IDriveConnectionStatus.port)
+		assertNull(IDriveConnectionStatus.instanceId)
 
 		// prepare listener
 		var listenerCalled = false
-		IDriveConnectionListener.callback = Runnable {
+		instance.callback = {
 			listenerCalled = true
 		}
 
@@ -43,12 +63,12 @@ class TestConnectionListener {
 		appContext.sendBroadcast(connectionIntent)
 
 		// verify the handling
-		await().untilAsserted {assertTrue(IDriveConnectionListener.isConnected)}
+		await().untilAsserted {assertTrue(IDriveConnectionStatus.isConnected)}
 		assertTrue(listenerCalled)
-		assertEquals("mini", IDriveConnectionListener.brand)
-		assertEquals("127.0.0.1", IDriveConnectionListener.host)
-		assertEquals(1234, IDriveConnectionListener.port)
-		assertEquals(13, IDriveConnectionListener.instanceId)
+		assertEquals("mini", IDriveConnectionStatus.brand)
+		assertEquals("127.0.0.1", IDriveConnectionStatus.host)
+		assertEquals(1234, IDriveConnectionStatus.port)
+		assertEquals(13, IDriveConnectionStatus.instanceId)
 
 		// now the car detaches
 		listenerCalled = false
@@ -56,12 +76,12 @@ class TestConnectionListener {
 		appContext.sendBroadcast(disconnectionIntent)
 
 		// verify the handling
-		await().untilAsserted {assertFalse(IDriveConnectionListener.isConnected)}
+		await().untilAsserted {assertFalse(IDriveConnectionStatus.isConnected)}
 		assertTrue(listenerCalled)
-		assertEquals("mini", IDriveConnectionListener.brand)
-		assertEquals("127.0.0.1", IDriveConnectionListener.host)
-		assertEquals(1234, IDriveConnectionListener.port)
-		assertEquals(13, IDriveConnectionListener.instanceId)
+		assertEquals("mini", IDriveConnectionStatus.brand)
+		assertEquals("127.0.0.1", IDriveConnectionStatus.host)
+		assertEquals(1234, IDriveConnectionStatus.port)
+		assertEquals(13, IDriveConnectionStatus.instanceId)
 
 		instance.unsubscribe(appContext)
 	}
