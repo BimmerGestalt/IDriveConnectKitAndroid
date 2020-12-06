@@ -5,33 +5,43 @@ import android.content.pm.PackageManager
 import java.lang.reflect.InvocationTargetException
 import java.util.*
 
-class SecurityAccess(val context: Context, var listener: Runnable = Runnable {}) {
+class SecurityAccess private constructor() {
 
 	companion object {
 		const val TAG = "IDriveSecurity"
 
-		private var instance: SecurityAccess? = null
+		private val _listeners = Collections.synchronizedMap(WeakHashMap<SecurityAccess, () -> Unit>())
 		fun getInstance(context: Context): SecurityAccess {
-			synchronized(SecurityAccess::javaClass) {
-				val instance = instance
-				return if (instance == null) {
-					val newInstance = SecurityAccess(context)
-					this.instance = newInstance
-					newInstance
-				} else {
-					instance
-				}
+			SecurityAccess.context = context.applicationContext
+			return SecurityAccess()
+		}
+
+		val installedSecurityServices = Collections.synchronizedSet(HashSet<KnownSecurityServices>())   // what services are detected as installed
+		var customPackageName: String? = null  // an overridden packageName, instead of using the context packageName
+		var bmwCerts: ByteArray? = null
+
+		lateinit var context: Context
+		val securityServiceManager by lazy { SecurityServiceManager(context, installedSecurityServices, Runnable {onUpdate()}) }
+		val securityModuleManager by lazy { SecurityModuleManager(context, installedSecurityServices) }
+
+		fun addListener(owner: SecurityAccess, listener: () -> Unit) {
+			_listeners[owner] = listener
+		}
+
+		fun onUpdate() {
+			_listeners.values.toList().forEach {
+				it.invoke()
 			}
 		}
 	}
 
-	val installedSecurityServices = Collections.synchronizedSet(HashSet<KnownSecurityServices>())   // what services are detected as installed
-	var customPackageName: String? = null  // an overridden packageName, instead of using the context packageName
-	var bmwCerts: ByteArray? = null
+	var callback: () -> Unit = {}
+		set(value) {
+			field = value
+			addListener(this, value)
+		}
 
-	val securityServiceManager = SecurityServiceManager(context, installedSecurityServices, Runnable {listener.run()})
-	val securityModuleManager = SecurityModuleManager(context, installedSecurityServices)
-
+	/** Discover any installed security services */
 	fun discover() {
 		val packageManager = context.packageManager
 		KnownSecurityServices.values().forEach { securityService ->
@@ -46,6 +56,7 @@ class SecurityAccess(val context: Context, var listener: Runnable = Runnable {})
 		}
 	}
 
+	/** Try to connect to any installed security services */
 	fun connect() {
 		discover()
 
@@ -53,7 +64,7 @@ class SecurityAccess(val context: Context, var listener: Runnable = Runnable {})
 		securityModuleManager.connect()
 
 		if (securityModuleManager.isConnected()) {
-			listener.run()
+			onUpdate()
 		}
 	}
 
@@ -86,7 +97,7 @@ class SecurityAccess(val context: Context, var listener: Runnable = Runnable {})
 	 */
 	@Throws(IllegalArgumentException::class)
 	fun signChallenge(appName: String = "", challenge: ByteArray):ByteArray {
-		synchronized(this) {
+		synchronized(SecurityAccess) {
 			val connection = securityServiceManager.connectedSecurityServices.values.firstOrNull() ?:
 				securityModuleManager.getConnection()!!
 			try {
@@ -116,15 +127,15 @@ class SecurityAccess(val context: Context, var listener: Runnable = Runnable {})
 	 * This is helpful for logging into the car
 	 */
 	fun fetchBMWCerts(appName: String = "SecurityService", brandHint: String = ""):ByteArray {
-		synchronized(this) {
-			var bmwCerts = this.bmwCerts
+		synchronized(SecurityAccess) {
+			var bmwCerts = bmwCerts
 			if (bmwCerts != null) return bmwCerts
 			val connection = securityServiceManager.connectedSecurityServices.entries.firstOrNull { it.key.name.startsWith(brandHint, ignoreCase = true) }?.value ?:
 				securityServiceManager.connectedSecurityServices.values.firstOrNull() ?:
 				securityModuleManager.getConnection()!!
 			val handle = connection.createSecurityContext(customPackageName ?: context.packageName, appName)
 			bmwCerts = connection.loadAppCert(handle)
-			this.bmwCerts = bmwCerts
+			SecurityAccess.bmwCerts = bmwCerts
 			connection.releaseSecurityContext(handle)
 			return bmwCerts
 		}
