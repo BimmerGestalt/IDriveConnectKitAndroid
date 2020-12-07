@@ -19,11 +19,12 @@ class TestSecurityService {
 	fun testCarChallengeResponse() {
 		var callbackTriggered = false
 		val appContext = InstrumentationRegistry.getTargetContext()
-		val securityAccess = SecurityAccess(appContext, Runnable { callbackTriggered = true })
-		val manager = securityAccess.securityServiceManager
+		val securityAccess = SecurityAccess.getInstance(appContext)
+		val manager = SecurityAccess.securityServiceManager
 
 		// test that we can connect to a security service
 		callbackTriggered = false
+		securityAccess.callback = { callbackTriggered = true }
 		securityAccess.connect()
 		await("Connecting to Connected Classic").until { manager.connectedSecurityServices.isNotEmpty() }
 		await("Waiting for pending connections").until { (manager.securityConnections.keys - manager.connectedSecurityServices.keys).isEmpty() }
@@ -58,7 +59,7 @@ class TestSecurityService {
 		// test that the callback is triggered when disconnecting
 		callbackTriggered = false
 		var callbackTriggered2 = false
-		securityAccess.listener = Runnable { callbackTriggered2 = true}
+		securityAccess.callback = { callbackTriggered2 = true}
 		securityAccess.disconnect()
 		assertFalse("Callback successfully not triggered", callbackTriggered)
 		assertTrue("Callback successfully triggered", callbackTriggered2)
@@ -67,8 +68,8 @@ class TestSecurityService {
 	@Test
 	fun testBMWCertificate() {
 		val appContext = InstrumentationRegistry.getTargetContext()
-		val securityAccess = SecurityAccess(appContext)
-		val manager = securityAccess.securityServiceManager
+		val securityAccess = SecurityAccess.getInstance(appContext)
+		val manager = SecurityAccess.securityServiceManager
 
 		securityAccess.connect()
 		await("Connecting to Connected Classic").until { manager.connectedSecurityServices.isNotEmpty() }

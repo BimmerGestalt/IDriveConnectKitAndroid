@@ -25,15 +25,16 @@ class TestSecurityAccess {
 	fun testCarChallengeResponse() {
 		var callbackTriggered = false
 		val appContext = InstrumentationRegistry.getTargetContext()
-		val securityAccess = SecurityAccess(appContext, Runnable { callbackTriggered = true })
+		val securityAccess = SecurityAccess.getInstance(appContext)
 
 		// test that we can connect to a security service
 		callbackTriggered = false
+		securityAccess.callback = { callbackTriggered = true }
 		securityAccess.connect()
 		await().until { securityAccess.isConnected() }
 		await("Waiting for pending connections").until { ! securityAccess.isConnecting() }
-		assertTrue("Connected Classic connections", securityAccess.securityServiceManager.connectedSecurityServices.isNotEmpty())
-		assertTrue("Active connections", securityAccess.securityServiceManager.securityConnections.isNotEmpty())
+		assertTrue("Connected Classic connections", SecurityAccess.securityServiceManager.connectedSecurityServices.isNotEmpty())
+		assertTrue("Active connections", SecurityAccess.securityServiceManager.securityConnections.isNotEmpty())
 
 		assertEquals("Callback successfully triggered", true, callbackTriggered)
 
@@ -57,9 +58,9 @@ class TestSecurityAccess {
 		// test that the callback is triggered when disconnecting
 		callbackTriggered = false
 		var callbackTriggered2 = false
-		securityAccess.listener = Runnable { callbackTriggered2 = true}
+		securityAccess.callback = { callbackTriggered2 = true}
 		securityAccess.disconnect()
-		assertTrue("No active connections", securityAccess.securityServiceManager.securityConnections.isEmpty())
+		assertTrue("No active connections", SecurityAccess.securityServiceManager.securityConnections.isEmpty())
 		assertFalse("Callback successfully not triggered", callbackTriggered)
 		assertTrue("Callback successfully triggered", callbackTriggered2)
 	}
@@ -67,7 +68,7 @@ class TestSecurityAccess {
 	@Test
 	fun testBMWCertificate() {
 		val appContext = InstrumentationRegistry.getTargetContext()
-		val securityAccess = SecurityAccess(appContext)
+		val securityAccess = SecurityAccess.getInstance(appContext)
 
 		securityAccess.connect()
 		await().until { securityAccess.isConnected() }
@@ -84,7 +85,7 @@ class TestSecurityAccess {
 	@Test
 	fun testCertMangling() {
 		val appContext = InstrumentationRegistry.getTargetContext()
-		val securityAccess = SecurityAccess(appContext)
+		val securityAccess = SecurityAccess.getInstance(appContext)
 
 		// load up app cert
 		val lock = Semaphore(0) // wait for the CarAPI to discover a specific app

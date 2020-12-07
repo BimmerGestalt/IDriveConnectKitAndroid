@@ -14,13 +14,13 @@ class TestSecurityModule {
 	@Test
 	fun testManager() {
 		val appContext = InstrumentationRegistry.getTargetContext()
-		val securityAccess = SecurityAccess(appContext)
+		val securityAccess = SecurityAccess.getInstance(appContext)
 		securityAccess.discover()
 
 		// test the main connection
-		val manager = SecurityModuleManager(appContext, securityAccess.installedSecurityServices)
+		val manager = SecurityModuleManager(appContext, SecurityAccess.installedSecurityServices)
 		manager.connect()
-		assertTrue(0 < securityAccess.installedSecurityServices.size)
+		assertTrue(0 < SecurityAccess.installedSecurityServices.size)
 		assertNotNull(manager.getConnection())
 		assertTrue(manager.isConnected())
 
@@ -36,7 +36,7 @@ class TestSecurityModule {
 		Assert.assertEquals("SecurityModuleManager - Received the correct challenge response", 0x15, response[0])
 
 		// test all of the installed services too
-		securityAccess.installedSecurityServices.forEach { entry ->
+		SecurityAccess.installedSecurityServices.forEach { entry ->
 			val name = entry.name
 			val securityModule = SecurityModuleManager.tryConnection(appContext, entry)!!
 			val handle = securityModule.createSecurityContext(appContext.packageName, "TestSecurityServiceJava")
@@ -50,12 +50,12 @@ class TestSecurityModule {
 	@Test
 	fun testBMWCertificate() {
 		val appContext = InstrumentationRegistry.getTargetContext()
-		val securityAccess = SecurityAccess(appContext)
+		val securityAccess = SecurityAccess.getInstance(appContext)
 		securityAccess.discover()
 
-		val manager = SecurityModuleManager(appContext, securityAccess.installedSecurityServices)
+		val manager = SecurityModuleManager(appContext, SecurityAccess.installedSecurityServices)
 		manager.connect()
-		assertTrue(0 < securityAccess.installedSecurityServices.size)
+		assertTrue(0 < SecurityAccess.installedSecurityServices.size)
 		assertNotNull(manager.getConnection())
 		assertTrue(manager.isConnected())
 
@@ -71,7 +71,7 @@ class TestSecurityModule {
 		assertArrayEquals("SecurityModuleManager - Received BMW certs", arrayOf("a4a_app_Android_FeatureCertificate_PIA_KML_VOICE_00.00.01", "a4a_app_BMWTouchCommand_Connection_00.00.10"), certNames.toTypedArray().sortedArray())
 
 		// test all of the installed services too
-		securityAccess.installedSecurityServices.forEach { entry ->
+		SecurityAccess.installedSecurityServices.forEach { entry ->
 			val name = entry.name
 			val securityModule = SecurityModuleManager.tryConnection(appContext, entry)!!
 
