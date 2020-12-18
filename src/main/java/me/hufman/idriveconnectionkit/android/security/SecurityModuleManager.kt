@@ -72,11 +72,12 @@ class SecurityModuleClient(context: Context, val packageName: String): ICarSecur
 
 	init {
 		// try to locate the proper proxy
-		proxy = try {
+		val proxy = try {
 			SecurityModuleClass(moduleContext.classLoader, "com.bmwgroup.connected.core.security.SecurityModule")
 		} catch (e: Exception) {
 			SecurityModuleClass(moduleContext.classLoader, "com.bmwgroup.connected.core.audio.AudioModule")
 		}
+		this.proxy = proxy
 
 		Log.i(TAG, "Loaded security module ${proxy.className}")
 		proxy.init("bmw")

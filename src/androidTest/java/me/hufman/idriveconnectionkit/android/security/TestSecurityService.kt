@@ -2,9 +2,9 @@ package me.hufman.idriveconnectionkit.android.security
 
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
-import junit.framework.Assert.*
 import me.hufman.idriveconnectionkit.android.CertMangling
 import org.awaitility.Awaitility.await
+import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.*
@@ -45,14 +45,15 @@ class TestSecurityService {
 			var response = securityService.signChallenge(handle, challenge)
 
 			assertEquals("$name - Received a challenge response", 512, response.size)
-			assertEquals("$name - Received the correct challenge response", 0x15, response[0])
+			assertEquals("$name - Received the correct challenge response", 0x15.toByte(), response[0])
 
 			// test that an invalid challenge is not accepted
 			try {
 				response = securityAccess.signChallenge("TestSecurityServiceJava", ByteArray(0))
 				fail("$name - Invalid challenge was signed, returned a response of size " + response.size)
 			} catch (e: IllegalArgumentException) {
-				assert(e.message!!.contains("Error while calling native function signChallenge"))
+				assert(e.message!!.contains("Error while calling native function signChallenge") ||
+						e.message!!.contains("Invalid challenge"))
 			}
 		}
 

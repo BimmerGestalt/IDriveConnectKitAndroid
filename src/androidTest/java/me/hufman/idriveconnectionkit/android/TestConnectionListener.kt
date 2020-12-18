@@ -4,8 +4,8 @@ package me.hufman.idriveconnectionkit.android
 import android.content.Intent
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
-import junit.framework.Assert.*
 import org.awaitility.Awaitility.await
+import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
 
