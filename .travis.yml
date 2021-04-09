@@ -23,7 +23,8 @@ before_script:
   - wget --inet4-only https://hufman.me/iHeartRadio_for_Auto_v1.12.2_apkpure.com.apk -O iheartradio.apk
   - adb install iheartradio.apk
   # install a report about xunit
-  - pip install --user xunitparser
+  - python -m pip install --upgrade --user --force-reinstall pip
+  - python -m pip install --user xunitparser
 
 script:
   - echo -en 'travis_fold:start:script.gradle_build\\r'
