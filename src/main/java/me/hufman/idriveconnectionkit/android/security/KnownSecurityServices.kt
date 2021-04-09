@@ -15,7 +15,9 @@ enum class KnownSecurityServices(val className: String,
 
 	// My BMW has a different pattern
 	BMWMine("com.bmwgroup.connected.core.services.security.CarSecurityService", "de.bmw.connected.mobile20.row"),
-	MiniMine("com.bmwgroup.connected.core.services.security.CarSecurityService", "de.mini.connected.mobile20.row");
+	MiniMine("com.bmwgroup.connected.core.services.security.CarSecurityService", "de.mini.connected.mobile20.row"),
+	BMWMineNA("com.bmwgroup.connected.core.services.security.CarSecurityService", "de.bmw.connected.mobile20.na"),
+	MiniMineNA("com.bmwgroup.connected.core.services.security.CarSecurityService", "de.mini.connected.mobile20.na");
 
 	override fun toString(): String {
 		return this.name
