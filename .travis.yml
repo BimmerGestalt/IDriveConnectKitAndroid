@@ -1,10 +1,14 @@
 language: android
+dist: xenial
 
 addons:
   apt:
     packages:
-      - "python3"
+      - "python3.5"
+      - "python3.5-dev"
+      - "python3-lxml"
       - "python3-pip"
+
 android:
   components:
     - extra-google-m2repository
@@ -19,7 +23,7 @@ android:
 # Emulator Management: Create, Start and Wait
 before_script:
   # install a report about xunit
-  - pip3 install --user xunitparserx
+  - python3.5 -m pip install --user xunitparserx
   # install the emulator
   - echo no | android create avd --force -n test -t android-24 --abi armeabi-v7a
   - emulator -avd test -no-window &
@@ -40,7 +44,7 @@ script:
   - echo -en 'travis_fold:start:script.gradle_connectedCheck\\r'
   - bash ./gradlew connectedCheck
   - echo -en 'travis_fold:end:script.gradle_connectedCheck\\r'
-  - python3 buildtools/xunit_summary.py build/outputs/androidTest-results/connected/flavors/*/*.xml
+  - python3.5 buildtools/xunit_summary.py build/outputs/androidTest-results/connected/flavors/*/*.xml
 
 after_script:
   - adb logcat -d
