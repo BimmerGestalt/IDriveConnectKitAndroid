@@ -1,4 +1,12 @@
 language: android
+dist: xenial
+
+addons:
+  apt:
+    packages:
+      - "python3.5"
+      - "python3.5-dev"
+      - "python3-pip"
 
 android:
   components:
@@ -10,8 +18,12 @@ android:
     - android-26
     - sys-img-armeabi-v7a-android-24
 
+
 # Emulator Management: Create, Start and Wait
 before_script:
+  # install a report about xunit
+  - python3.5 -m pip install --user xunitparserx
+  # install the emulator
   - echo no | android create avd --force -n test -t android-24 --abi armeabi-v7a
   - emulator -avd test -no-window &
   - android-wait-for-emulator
@@ -22,9 +34,6 @@ before_script:
   # install an example CarAPI app
   - wget --inet4-only https://hufman.me/iHeartRadio_for_Auto_v1.12.2_apkpure.com.apk -O iheartradio.apk
   - adb install iheartradio.apk
-  # install a report about xunit
-  - python -m pip install --upgrade --user --force-reinstall pip
-  - python -m pip install --user xunitparser
 
 script:
   - echo -en 'travis_fold:start:script.gradle_build\\r'
@@ -34,7 +43,7 @@ script:
   - echo -en 'travis_fold:start:script.gradle_connectedCheck\\r'
   - bash ./gradlew connectedCheck
   - echo -en 'travis_fold:end:script.gradle_connectedCheck\\r'
-  - python buildtools/xunit_summary.py build/outputs/androidTest-results/connected/flavors/*/*.xml
+  - python3.5 buildtools/xunit_summary.py build/outputs/androidTest-results/connected/flavors/*/*.xml
 
 after_script:
   - adb logcat -d
