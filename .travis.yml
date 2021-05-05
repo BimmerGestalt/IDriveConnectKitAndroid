@@ -19,7 +19,7 @@ android:
 # Emulator Management: Create, Start and Wait
 before_script:
   # install a report about xunit
-  - pip3 install --user xunitparser
+  - pip3 install --user xunitparserx
   # install the emulator
   - echo no | android create avd --force -n test -t android-24 --abi armeabi-v7a
   - emulator -avd test -no-window &

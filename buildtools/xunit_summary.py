@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import xunitparser
+import xunitparserx
 import sys
 
 colors = {
@@ -17,7 +17,7 @@ characters = {
 	'cancel': u'\u2717',
 }
 
-ts, tr = xunitparser.parse(open(sys.argv[1]))
+ts, tr = xunitparserx.parse(open(sys.argv[1]))
 
 summary = {
 	'good': 0,
