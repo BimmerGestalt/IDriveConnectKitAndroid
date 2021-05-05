@@ -64,11 +64,16 @@ class IDriveConnectionReceiver: IDriveConnectionListener, BroadcastReceiver() {
 	override fun onReceive(context: Context?, intent: Intent?) {
 		if (intent == null) return
 		if (intent.action == INTENT_ATTACHED) {
-			Log.i(TAG, "Received car announcement: " + intent.action)
 			val brand = intent.getStringExtra("EXTRA_BRAND")
 			val host = intent.getStringExtra("EXTRA_HOST")
 			val port = intent.getIntExtra("EXTRA_PORT", -1)
 			val instanceId = intent.getIntExtra("EXTRA_INSTANCE_ID", -1)
+			Log.i(TAG, "Received car announcement: ${intent.action} $brand $instanceId@$host:$port")
+			brand ?: return
+			host ?: return
+			if (port == -1 || instanceId == -1) {
+				return
+			}
 			IDriveConnectionStatus.setConnection(brand, host, port, instanceId)
 		}
 		if (intent.action == INTENT_DETACHED) {
