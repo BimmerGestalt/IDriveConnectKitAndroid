@@ -21,7 +21,7 @@ class SecurityAccess private constructor() {
 		var bmwCerts: ByteArray? = null
 
 		lateinit var context: Context
-		val securityServiceManager by lazy { SecurityServiceManager(context, installedSecurityServices, Runnable {onUpdate()}) }
+		val securityServiceManager by lazy { SecurityServiceManager(context, installedSecurityServices) { onUpdate() } }
 		val securityModuleManager by lazy { SecurityModuleManager(context, installedSecurityServices) }
 
 		fun addListener(owner: SecurityAccess, listener: () -> Unit) {
@@ -29,7 +29,7 @@ class SecurityAccess private constructor() {
 		}
 
 		fun onUpdate() {
-			_listeners.values.toList().forEach {
+			_listeners.values.forEach {
 				it.invoke()
 			}
 		}

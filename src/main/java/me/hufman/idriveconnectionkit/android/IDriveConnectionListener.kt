@@ -18,7 +18,7 @@ interface IDriveConnectionListener: IDriveConnectionStatus {
 		}
 
 		fun onUpdate() {
-			listeners.keys.toList().forEach {
+			listeners.keys.forEach {
 				it.onUpdate()
 			}
 		}
