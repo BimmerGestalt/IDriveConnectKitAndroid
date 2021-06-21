@@ -29,7 +29,8 @@ class SecurityAccess private constructor() {
 		}
 
 		fun onUpdate() {
-			_listeners.values.forEach {
+			val listeners = ArrayList(_listeners.values)
+			listeners.forEach {
 				it.invoke()
 			}
 		}
