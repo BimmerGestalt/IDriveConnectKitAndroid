@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.util.Log
+import java.lang.IllegalArgumentException
 import java.util.*
 
 /** Interface for IDriveConnectionStatus to update listeners */
@@ -51,6 +52,9 @@ class IDriveConnectionReceiver: IDriveConnectionListener, BroadcastReceiver() {
 		const val INTENT_BCL_REPORT = "com.bmwgroup.connected.accessory.ACTION_CAR_ACCESSORY_INFO"
 	}
 
+	var subscribed = false
+	var subscribedBcl = false
+
 	// only listen for callbacks if we have a callback
 	// don't use it as a constructor parameter because we need this property setter logic
 	var callback: () -> Unit = {}
@@ -63,7 +67,8 @@ class IDriveConnectionReceiver: IDriveConnectionListener, BroadcastReceiver() {
 	 * Listen for status updates about whether the car is connected
 	 */
 	override fun onReceive(context: Context?, intent: Intent?) {
-		if (intent == null) return
+		context ?: return
+		intent ?: return
 		if (intent.action == INTENT_ATTACHED) {
 			val brand = intent.getStringExtra("EXTRA_BRAND")
 			val host = intent.getStringExtra("EXTRA_HOST")
@@ -95,15 +100,38 @@ class IDriveConnectionReceiver: IDriveConnectionListener, BroadcastReceiver() {
 				}
 			}
 		}
+
+		if (this.instanceId ?: -1 > 0 && subscribedBcl) {
+			// stop listening for BCL reports
+			unsubscribe(context)
+			subscribeAccessory(context)
+		}
 	}
 
 	fun subscribe(context: Context) {
-		context.registerReceiver(this, IntentFilter(INTENT_ATTACHED))
-		context.registerReceiver(this, IntentFilter(INTENT_DETACHED))
-		context.registerReceiver(this, IntentFilter(INTENT_BCL_REPORT))
+		subscribeAccessory(context)
+		subscribeBcl(context)
 	}
+	private fun subscribeAccessory(context: Context) {
+		if (!subscribed) {
+			context.registerReceiver(this, IntentFilter(INTENT_ATTACHED))
+			context.registerReceiver(this, IntentFilter(INTENT_DETACHED))
+			subscribed = true
+		}
+	}
+	private fun subscribeBcl(context: Context) {
+		if (!subscribedBcl) {
+			context.registerReceiver(this, IntentFilter(INTENT_BCL_REPORT))
+			subscribedBcl = true
+		}
+	}
+
 	fun unsubscribe(context: Context) {
-		context.unregisterReceiver(this)
+		try {
+			subscribed = false
+			subscribedBcl = false
+			context.unregisterReceiver(this)
+		} catch (e: IllegalArgumentException) {}
 	}
 
 	override fun onUpdate() {

@@ -28,6 +28,7 @@ interface IDriveConnectionStatus {
 
 		fun reset() {
 			isConnected = false
+			instanceId = -1
 			IDriveConnectionListener.onUpdate()
 		}
 
