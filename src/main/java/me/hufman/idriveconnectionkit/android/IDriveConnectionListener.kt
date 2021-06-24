@@ -101,7 +101,12 @@ class IDriveConnectionReceiver: IDriveConnectionListener, BroadcastReceiver() {
 			}
 		}
 
-		if (this.instanceId ?: -1 > 0 && subscribedBcl) {
+		if ((this.instanceId ?: -1) <= 0 && !subscribedBcl) {
+			Log.i(TAG, "Re-subscribing to BCL updates to recover instanceId")
+			subscribeBcl(context)
+		}
+		if ((this.instanceId ?: -1) > 0 && subscribedBcl) {
+			Log.i(TAG, "Unsubscribing from BCL updates after receiving instanceId $instanceId")
 			// stop listening for BCL reports
 			unsubscribe(context)
 			subscribeAccessory(context)
