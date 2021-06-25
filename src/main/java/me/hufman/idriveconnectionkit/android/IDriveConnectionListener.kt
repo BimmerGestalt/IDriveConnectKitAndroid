@@ -44,16 +44,15 @@ class IDriveConnectionObserver(var callback: () -> Unit = {}): IDriveConnectionL
  * and then updates IDriveConnectionStatus appropriately
  */
 class IDriveConnectionReceiver: IDriveConnectionListener, BroadcastReceiver() {
-	private val TAG = "IDriveConnectionListen"
 
 	companion object {
+		val TAG = "IDriveConnectionListen"
 		const val INTENT_ATTACHED = "com.bmwgroup.connected.accessory.ACTION_CAR_ACCESSORY_ATTACHED"
 		const val INTENT_DETACHED = "com.bmwgroup.connected.accessory.ACTION_CAR_ACCESSORY_DETACHED"
 		const val INTENT_BCL_REPORT = "com.bmwgroup.connected.accessory.ACTION_CAR_ACCESSORY_INFO"
 	}
 
 	var subscribed = false
-	var subscribedBcl = false
 
 	// only listen for callbacks if we have a callback
 	// don't use it as a constructor parameter because we need this property setter logic
@@ -62,6 +61,49 @@ class IDriveConnectionReceiver: IDriveConnectionListener, BroadcastReceiver() {
 			field = value
 			IDriveConnectionListener.addListener(this)
 		}
+
+	/** Little helper receiver to temporarily watch for InstanceID updates */
+	private class IDriveBclReceiver(val idrive: IDriveConnectionListener): BroadcastReceiver() {
+		var subscribed = false
+
+		override fun onReceive(context: Context?, intent: Intent?) {
+			context ?: return
+			intent ?: return
+			if (intent.action == INTENT_BCL_REPORT) {
+				if (idrive.instanceId ?: -1 <= 0) {  // don't know InstanceId yet
+					// try to get InstanceId from the BCL Report
+					val brand = idrive.brand ?: return
+					val host = idrive.host ?: return
+					val port = idrive.port ?: return
+					val state = intent.getStringExtra("EXTRA_STATE")
+					val instanceId = intent.getShortExtra("EXTRA_INSTANCE_ID", 0)
+					if (state == "WORKING" && instanceId > 0) {
+						Log.i(TAG, "Recovered instance ID from BCL report: $instanceId")
+						IDriveConnectionStatus.setConnection(brand, host, port, instanceId.toInt())
+					}
+				}
+			}
+			if ((idrive.instanceId ?: -1) > 0 && subscribed) {
+				Log.i(TAG, "Unsubscribing from BCL updates after receiving instanceId ${idrive.instanceId}")
+				// stop listening for BCL reports
+				unsubscribe(context)
+			}
+		}
+
+		fun subscribe(context: Context) {
+			if (!subscribed) {
+				context.registerReceiver(this, IntentFilter(INTENT_BCL_REPORT))
+				subscribed = true
+			}
+		}
+		fun unsubscribe(context: Context) {
+			try {
+				subscribed = false
+				context.unregisterReceiver(this)
+			} catch (e: IllegalArgumentException) {}
+		}
+	}
+	private val bclListener = IDriveBclReceiver(this)
 
 	/**
 	 * Listen for status updates about whether the car is connected
@@ -86,57 +128,29 @@ class IDriveConnectionReceiver: IDriveConnectionListener, BroadcastReceiver() {
 			Log.i(TAG, "Received car announcement: " + intent.action)
 			IDriveConnectionStatus.reset()
 		}
-		if (intent.action == INTENT_BCL_REPORT) {
-			if (this.instanceId ?: -1 <= 0) {  // don't know InstanceId yet
-				// try to get InstanceId from the BCL Report
-				val brand = this.brand ?: return
-				val host = this.host ?: return
-				val port = this.port ?: return
-				val state = intent.getStringExtra("EXTRA_STATE")
-				val instanceId = intent.getShortExtra("EXTRA_INSTANCE_ID", 0)
-				if (state == "WORKING" && instanceId > 0) {
-					Log.i(TAG, "Recovered instance ID from BCL report: $instanceId")
-					IDriveConnectionStatus.setConnection(brand, host, port, instanceId.toInt())
-				}
-			}
-		}
 
-		if ((this.instanceId ?: -1) <= 0 && !subscribedBcl) {
+		// subscribe to listen for InstanceId
+		if ((this.instanceId ?: -1) <= 0 && !bclListener.subscribed) {
 			Log.i(TAG, "Re-subscribing to BCL updates to recover instanceId")
-			subscribeBcl(context)
-		}
-		if ((this.instanceId ?: -1) > 0 && subscribedBcl) {
-			Log.i(TAG, "Unsubscribing from BCL updates after receiving instanceId $instanceId")
-			// stop listening for BCL reports
-			unsubscribe(context)
-			subscribeAccessory(context)
+			bclListener.subscribe(context)
 		}
 	}
 
 	fun subscribe(context: Context) {
-		subscribeAccessory(context)
-		subscribeBcl(context)
-	}
-	private fun subscribeAccessory(context: Context) {
 		if (!subscribed) {
 			context.registerReceiver(this, IntentFilter(INTENT_ATTACHED))
 			context.registerReceiver(this, IntentFilter(INTENT_DETACHED))
 			subscribed = true
 		}
-	}
-	private fun subscribeBcl(context: Context) {
-		if (!subscribedBcl) {
-			context.registerReceiver(this, IntentFilter(INTENT_BCL_REPORT))
-			subscribedBcl = true
-		}
+		bclListener.subscribe(context)
 	}
 
 	fun unsubscribe(context: Context) {
 		try {
 			subscribed = false
-			subscribedBcl = false
 			context.unregisterReceiver(this)
 		} catch (e: IllegalArgumentException) {}
+		bclListener.unsubscribe(context)
 	}
 
 	override fun onUpdate() {
