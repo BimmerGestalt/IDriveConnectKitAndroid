@@ -132,7 +132,7 @@ class IDriveConnectionReceiver: IDriveConnectionListener, BroadcastReceiver() {
 		// subscribe to listen for InstanceId
 		if ((this.instanceId ?: -1) <= 0 && !bclListener.subscribed) {
 			Log.i(TAG, "Re-subscribing to BCL updates to recover instanceId")
-			bclListener.subscribe(context)
+			bclListener.subscribe(context.applicationContext)
 		}
 	}
 
