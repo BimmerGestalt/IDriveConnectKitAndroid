@@ -2,6 +2,7 @@ package me.hufman.idriveconnectionkit.android
 
 import android.content.Intent
 import com.bmwgroup.connected.car.app.BrandType
+import java.lang.IllegalArgumentException
 
 class CarAPIAppInfo(val id: String,
                     val title: String,
@@ -9,18 +10,18 @@ class CarAPIAppInfo(val id: String,
                     val version: String,    // should be a version string, such as "v3"
                     val rhmiVersion: String?,
                     val brandType: BrandType,
-                    val connectIntentName: String,
-                    val disconnectIntentName: String,
+                    val connectIntentName: String?,
+                    val disconnectIntentName: String?,
                     val appIcon: ByteArray?) {
 
 	companion object {
 		fun fromDiscoveryIntent(intent: Intent): CarAPIAppInfo {
-			return CarAPIAppInfo(id = intent.getStringExtra("EXTRA_APPLICATION_ID"),
-					title = intent.getStringExtra("EXTRA_APPLICATION_TITLE"),
-					category = intent.getStringExtra("EXTRA_APPLICATION_CATEGORY"),
-					version = intent.getStringExtra("EXTRA_APPLICATION_VERSION"),
+			return CarAPIAppInfo(id = intent.getStringExtra("EXTRA_APPLICATION_ID") ?: throw IllegalArgumentException("Missing EXTRA_APPLICATION_ID"),
+					title = intent.getStringExtra("EXTRA_APPLICATION_TITLE") ?: throw IllegalArgumentException("Missing EXTRA_APPLICATION_TITLE"),
+					category = intent.getStringExtra("EXTRA_APPLICATION_CATEGORY") ?: throw IllegalArgumentException("Missing EXTRA_APPLICATION_CATEGORY"),
+					version = intent.getStringExtra("EXTRA_APPLICATION_VERSION") ?: throw IllegalArgumentException("Missing EXTRA_APPLICATION_VERSION"),
 					rhmiVersion = intent.getStringExtra("EXTRA_RHMI_VERSION"),
-					brandType = intent.getSerializableExtra("EXTRA_APPLICATION_BRAND") as BrandType,
+					brandType = intent.getSerializableExtra("EXTRA_APPLICATION_BRAND") as? BrandType ?: throw IllegalArgumentException("Missing EXTRA_APPLICATION_BRAND"),
 					connectIntentName = intent.getStringExtra("EXTRA_APPLICATION_CONNECT_RECEIVER_ACTION"),
 					disconnectIntentName = intent.getStringExtra("EXTRA_APPLICATION_DISCONNECT_RECEIVER_ACTION"),
 					appIcon = intent.getByteArrayExtra("EXTRA_APPLICATION_APP_ICON"))
