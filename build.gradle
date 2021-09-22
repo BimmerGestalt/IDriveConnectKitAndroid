@@ -1,5 +1,6 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+apply plugin: 'maven-publish'
 
 repositories {
     jcenter()
@@ -54,4 +55,20 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation "org.bouncycastle:bcmail-jdk16:1.46"
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            // Creates a Maven publication called "release".
+            release(MavenPublication) {
+                // Applies the component for the release build variant.
+                from components.release
+
+                groupId = 'io.bimmergestalt'
+                artifactId = 'IDriveConnectKitAndroid'
+                version = 0.1
+            }
+        }
+    }
 }
