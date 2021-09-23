@@ -1,4 +1,4 @@
-package me.hufman.idriveconnectionkit.android.security
+package io.bimmergestalt.idriveconnectkit.android.security
 
 // The list of known BMW/Mini apps that we can connect to
 // We'll try to connect to any of them that are installed

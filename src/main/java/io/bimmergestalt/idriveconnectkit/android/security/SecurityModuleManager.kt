@@ -1,10 +1,10 @@
-package me.hufman.idriveconnectionkit.android.security
+package io.bimmergestalt.idriveconnectkit.android.security
 
 import android.content.Context
 import android.os.IBinder
 import android.util.Log
 import com.bmwgroup.connected.internal.security.ICarSecurityService
-import me.hufman.idriveconnectionkit.android.security.SecurityAccess.Companion.TAG
+import io.bimmergestalt.idriveconnectkit.android.security.SecurityAccess.Companion.TAG
 import java.lang.IllegalArgumentException
 
 /**

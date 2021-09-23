@@ -1,4 +1,4 @@
-package me.hufman.idriveconnectionkit.android
+package io.bimmergestalt.idriveconnectkit.android
 
 import android.content.Intent
 import com.bmwgroup.connected.car.app.BrandType

@@ -1,4 +1,4 @@
-package me.hufman.idriveconnectionkit.android
+package io.bimmergestalt.idriveconnectkit.android
 
 /**
  * The current connection status is available as static members of this object

@@ -1,4 +1,4 @@
-package me.hufman.idriveconnectionkit.android.security
+package io.bimmergestalt.idriveconnectkit.android.security
 
 import android.content.Context
 import android.content.pm.PackageManager

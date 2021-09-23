@@ -1,8 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="me.hufman.idriveconnectionkit.android">
+    package="io.bimmergestalt.idriveconnectkit.android">
 
 <application>
-    <receiver android:name=".IDriveConnectionReceiver">
+    <receiver android:name="io.bimmergestalt.idriveconnectkit.android.IDriveConnectionReceiver">
         <intent-filter>
             <action android:name="com.bmwgroup.connected.accessory.ACTION_CAR_ACCESSORY_ATTACHED" />
             <action android:name="com.bmwgroup.connected.accessory.ACTION_CAR_ACCESSORY_DETACHED" />

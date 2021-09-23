@@ -1,6 +1,5 @@
-package me.hufman.idriveconnectionkit.android
+package io.bimmergestalt.idriveconnectkit.android
 
-import android.content.Context
 import java.io.InputStream
 
 interface CarAppResources {

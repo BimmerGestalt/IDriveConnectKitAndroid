@@ -1,8 +1,8 @@
-package me.hufman.idriveconnectionkit.android.security
+package io.bimmergestalt.idriveconnectkit.android.security
 
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
-import me.hufman.idriveconnectionkit.android.CertMangling
+import io.bimmergestalt.idriveconnectkit.android.CertMangling
 import org.awaitility.Awaitility.await
 import org.junit.Assert.*
 import org.junit.Test

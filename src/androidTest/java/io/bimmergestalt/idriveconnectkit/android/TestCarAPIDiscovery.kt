@@ -1,4 +1,4 @@
-package me.hufman.idriveconnectionkit.android
+package io.bimmergestalt.idriveconnectkit.android
 
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
