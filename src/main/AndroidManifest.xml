@@ -1,12 +1,54 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="io.bimmergestalt.idriveconnectkit.android">
 
-<application>
-    <receiver android:name="io.bimmergestalt.idriveconnectkit.android.IDriveConnectionReceiver">
-        <intent-filter>
-            <action android:name="com.bmwgroup.connected.accessory.ACTION_CAR_ACCESSORY_ATTACHED" />
-            <action android:name="com.bmwgroup.connected.accessory.ACTION_CAR_ACCESSORY_DETACHED" />
-        </intent-filter>
-    </receiver>
-</application>
+    <queries>
+        <!-- Discover BMW apps in Android 11 -->
+        <intent>
+            <!-- BMW Connected Classic ROW -->
+            <action android:name="com.bmwgroup.connected.bmw.ACTION_CAR_APPLICATION_LAUNCHER" />
+        </intent>
+        <intent>
+            <!-- BMW Connected Classic USA -->
+            <action android:name="com.bmwgroup.connected.bmw.usa.ACTION_CAR_APPLICATION_LAUNCHER" />
+        </intent>
+        <intent>
+            <!-- BMW Connected ROW -->
+            <action android:name="de.bmw.connected.ACTION_CAR_APPLICATION_LAUNCHER" />
+        </intent>
+        <intent>
+            <!-- BMW Connected NA -->
+            <action android:name="de.bmw.connected.na.ACTION_CAR_APPLICATION_LAUNCHER" />
+        </intent>
+
+        <intent>
+            <!-- Mini Connected Classic ROW -->
+            <action android:name="com.bmwgroup.connected.mini.ACTION_CAR_APPLICATION_LAUNCHER" />
+        </intent>
+        <intent>
+            <!-- Mini Connected Classic USA -->
+            <action android:name="com.bmwgroup.connected.mini.usa.ACTION_CAR_APPLICATION_LAUNCHER" />
+        </intent>
+        <intent>
+            <!-- Mini Connected ROW -->
+            <action android:name="de.mini.connected.ACTION_CAR_APPLICATION_LAUNCHER" />
+        </intent>
+        <intent>
+            <!-- Mini Connected NA -->
+            <action android:name="de.mini.connected.na.ACTION_CAR_APPLICATION_LAUNCHER" />
+        </intent>
+
+        <intent>
+            <!-- BMW/Mini Mine -->
+            <action android:name="com.bmwgroup.carconnection.ACTION_CAR_APPLICATION_LAUNCHER" />
+        </intent>
+    </queries>
+
+    <application>
+        <receiver android:name="io.bimmergestalt.idriveconnectkit.android.IDriveConnectionReceiver">
+            <intent-filter>
+                <action android:name="com.bmwgroup.connected.accessory.ACTION_CAR_ACCESSORY_ATTACHED" />
+                <action android:name="com.bmwgroup.connected.accessory.ACTION_CAR_ACCESSORY_DETACHED" />
+            </intent-filter>
+        </receiver>
+    </application>
 </manifest>
