@@ -1,0 +1,14 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="io.bimmergestalt.idriveconnectkit.android">
+
+    <queries>
+        <!-- Discover BMW Car API apps in Android 11 -->
+        <!-- Used only for unit tests -->
+        <intent>
+            <action android:name="com.bmwgroup.connected.car.app.action.CONNECTED_APP_INSTALLED" />
+        </intent>
+    </queries>
+
+    <application>
+    </application>
+</manifest>

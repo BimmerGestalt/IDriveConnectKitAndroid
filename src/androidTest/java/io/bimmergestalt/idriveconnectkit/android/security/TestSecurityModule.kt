@@ -38,9 +38,10 @@ class TestSecurityModule {
 		// test all of the installed services too
 		SecurityAccess.installedSecurityServices.forEach { entry ->
 			val name = entry.name
-			val securityModule = SecurityModuleManager.tryConnection(appContext, entry)!!
-			val handle = securityModule.createSecurityContext(appContext.packageName, "TestSecurityServiceJava")
-			var response = securityModule.signChallenge(handle, challenge)
+			val securityModule = SecurityModuleManager.tryConnection(appContext, entry)
+			assertNotNull("Connected to security module $name", securityModule)
+			val handle = securityModule!!.createSecurityContext(appContext.packageName, "TestSecurityServiceJava")
+			val response = securityModule.signChallenge(handle, challenge)
 			Assert.assertEquals("$name - Received a challenge response", 512, response.size)
 			Assert.assertEquals("$name - Received the correct challenge response", 0x15, response[0])
 		}
