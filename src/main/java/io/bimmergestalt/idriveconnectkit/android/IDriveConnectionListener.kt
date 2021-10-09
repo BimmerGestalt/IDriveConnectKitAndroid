@@ -50,6 +50,7 @@ class IDriveConnectionReceiver: IDriveConnectionListener, BroadcastReceiver() {
 		const val INTENT_ATTACHED = "com.bmwgroup.connected.accessory.ACTION_CAR_ACCESSORY_ATTACHED"
 		const val INTENT_DETACHED = "com.bmwgroup.connected.accessory.ACTION_CAR_ACCESSORY_DETACHED"
 		const val INTENT_BCL_REPORT = "com.bmwgroup.connected.accessory.ACTION_CAR_ACCESSORY_INFO"
+		const val INTENT_ADDON_CONNECTION = "io.bimmergestalt.carconnection.service"
 	}
 
 	var subscribed = false
@@ -111,7 +112,7 @@ class IDriveConnectionReceiver: IDriveConnectionListener, BroadcastReceiver() {
 	override fun onReceive(context: Context?, intent: Intent?) {
 		context ?: return
 		intent ?: return
-		if (intent.action == INTENT_ATTACHED) {
+		if (intent.action == INTENT_ATTACHED || intent.action == INTENT_ADDON_CONNECTION) {
 			val brand = intent.getStringExtra("EXTRA_BRAND")
 			val host = intent.getStringExtra("EXTRA_HOST")
 			val port = intent.getIntExtra("EXTRA_PORT", -1)
