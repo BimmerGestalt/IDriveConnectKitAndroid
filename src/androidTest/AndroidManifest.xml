@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="io.bimmergestalt.idriveconnectkit.android">
+    package="io.bimmergestalt.idriveconnectkit.android.test">
 
     <queries>
         <!-- Discover BMW Car API apps in Android 11 -->

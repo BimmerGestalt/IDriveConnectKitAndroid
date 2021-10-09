@@ -1,11 +1,9 @@
 package io.bimmergestalt.idriveconnectkit.android.security
 
+import android.net.Uri
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
-import io.bimmergestalt.idriveconnectkit.android.CarAPIClient
-import io.bimmergestalt.idriveconnectkit.android.CarAPIDiscovery
 import io.bimmergestalt.idriveconnectkit.android.CertMangling
-import io.bimmergestalt.idriveconnectkit.android.TestCarAPIDiscovery
 import org.awaitility.Awaitility.await
 import org.junit.Assert.*
 import org.junit.Test
@@ -88,15 +86,9 @@ class TestSecurityAccess {
 		val appContext = InstrumentationRegistry.getTargetContext()
 		val securityAccess = SecurityAccess.getInstance(appContext)
 
-		// load up app cert
-		val lock = Semaphore(0) // wait for the CarAPI to discover a specific app
-
-		CarAPIDiscovery.discoverApps(appContext, TestCarAPIDiscovery.WaitForCarAPI("com.clearchannel.iheartradio.connect", lock))
-		lock.tryAcquire(60000, TimeUnit.MILLISECONDS)    // wait up to 60s for the CarAPI app to respond
-		CarAPIDiscovery.cancelDiscovery(appContext)
-		assertTrue(CarAPIDiscovery.discoveredApps.containsKey("com.clearchannel.iheartradio.connect"))
-		val app = CarAPIDiscovery.discoveredApps["com.clearchannel.iheartradio.connect"] as CarAPIClient
-		val appCert = TestCarAPIDiscovery.loadInputStream(app.getAppCertificate() as InputStream)
+		val packageName = "com.clearchannel.iheartradio.connect"
+		val appCertUri = Uri.parse("content://$packageName.provider/carapplications/$packageName/$packageName.p7b")
+		val appCert = appContext.contentResolver.openAssetFileDescriptor(appCertUri, "r")!!.createInputStream().readBytes()
 
 		// load up bmw cert
 		securityAccess.connect()
