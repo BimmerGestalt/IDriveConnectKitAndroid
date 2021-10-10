@@ -81,7 +81,7 @@ class TestConnectionListener {
 		assertEquals("mini", IDriveConnectionStatus.brand)
 		assertEquals("127.0.0.1", IDriveConnectionStatus.host)
 		assertEquals(1234, IDriveConnectionStatus.port)
-		assertEquals(13, IDriveConnectionStatus.instanceId)
+		assertEquals(-1, IDriveConnectionStatus.instanceId)
 
 		instance.unsubscribe(appContext)
 	}
