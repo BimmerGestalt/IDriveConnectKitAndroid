@@ -41,6 +41,9 @@
             <!-- BMW/Mini Mine -->
             <action android:name="com.bmwgroup.carconnection.ACTION_CAR_APPLICATION_LAUNCHER" />
         </intent>
+
+        <!-- Load CDS data from AAIdrive -->
+        <provider android:authorities="io.bimmergestalt.cardata.provider" />
     </queries>
 
     <application>
