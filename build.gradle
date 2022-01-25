@@ -22,7 +22,7 @@ android {
     compileSdkVersion 30
 
     defaultConfig {
-        minSdkVersion 23
+        minSdkVersion 14
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
@@ -49,6 +49,7 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.lifecycle:lifecycle-livedata:2.0.0'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'org.awaitility:awaitility-scala:3.1.5'
