@@ -1,6 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="io.bimmergestalt.idriveconnectkit.android">
 
+    <!-- Allow connecting to the localhost Etch RPC port -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <queries>
         <!-- Discover BMW apps in Android 11 -->
         <intent>
