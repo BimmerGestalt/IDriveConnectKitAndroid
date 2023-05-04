@@ -22,7 +22,10 @@ class SecurityServiceManager(val context: Context, val installedSecurityServices
 	fun connect() {
 		verifyConnections()
 
-		installedSecurityServices.forEach { securityService ->
+		installedSecurityServices.filter {
+			// Mobile20 does not allow Security Service connections, don't try
+			!it.packageName.contains("mobile20")
+		}.forEach { securityService ->
 			if (!connectedSecurityServices.containsKey(securityService)) {
 				securityConnections.remove(securityService)?.disconnect()
 				val connection = SecurityConnectionListener(context, securityService)
