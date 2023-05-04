@@ -35,7 +35,7 @@ class SecurityModuleManager(val context: Context, val installedSecurityServices:
 			if (connection != null) {
 				return
 			}
-			Log.i(TAG, "Trying to inspect security module in $it")
+			Log.i(TAG, "Trying to inspect security module in $it ${it.packageName}")
 			val connection = tryConnection(context, it)
 			if (connection != null) {
 				SecurityModuleManager.connection = connection
@@ -73,13 +73,13 @@ class SecurityModuleClient(context: Context, val packageName: String): ICarSecur
 	init {
 		// try to locate the proper proxy
 		val proxy = try {
-			SecurityModuleClass(moduleContext.classLoader, "com.bmwgroup.connected.core.security.SecurityModule")
+			SecurityModuleClass(moduleContext.classLoader, packageName, "com.bmwgroup.connected.core.security.SecurityModule")
 		} catch (e: Exception) {
-			SecurityModuleClass(moduleContext.classLoader, "com.bmwgroup.connected.core.audio.AudioModule")
+			SecurityModuleClass(moduleContext.classLoader, packageName, "com.bmwgroup.connected.core.audio.AudioModule")
 		}
 		this.proxy = proxy
 
-		Log.i(TAG, "Loaded security module ${proxy.className}")
+		Log.i(TAG, "Loaded security module $packageName ${proxy.className}")
 		proxy.init("bmw")
 	}
 
@@ -131,7 +131,7 @@ abstract class SecurityModuleProxy {
 /**
  * Throws
  */
-class SecurityModuleClass(classLoader: ClassLoader, val className: String): SecurityModuleProxy() {
+class SecurityModuleClass(classLoader: ClassLoader, val packageName: String, val className: String): SecurityModuleProxy() {
 	override val _init: (String) -> Unit
 	override val _createSecurityContext: (String, String) -> Int
 	override val _getCertificates: (Int) -> ByteArray
@@ -141,7 +141,7 @@ class SecurityModuleClass(classLoader: ClassLoader, val className: String): Secu
 
 	init {
 		// find the matching functions from the SecurityModule to fit our SecurityModuleProxy
-		Log.d(TAG, "Trying to load security module $className")
+		Log.d(TAG, "Trying to load security module $packageName $className")
 		val inspected = classLoader.loadClass(className)
 
 		try {
@@ -182,7 +182,7 @@ class SecurityModuleClass(classLoader: ClassLoader, val className: String): Secu
 			_deInit = { deInit(null) }
 		} catch (e: Exception) {
 			// could not find a method in this class
-			Log.w(TAG, "Unable to parse $className into a SecurityModule:")
+			Log.w(TAG, "Unable to parse $packageName $className into a SecurityModule:")
 			_dumpMethods(classLoader, className)
 			throw e
 		}

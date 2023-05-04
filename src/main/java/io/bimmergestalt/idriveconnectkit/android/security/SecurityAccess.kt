@@ -51,6 +51,7 @@ class SecurityAccess private constructor() {
 				val packageName = securityService.packageName
 				packageManager.getPackageInfo(packageName, 0)
 				installedSecurityServices.add(securityService)
+//				Log.d(TAG, "Found installed security service $securityService")
 			} catch (e: PackageManager.NameNotFoundException) {
 				installedSecurityServices.remove(securityService)
 			}
