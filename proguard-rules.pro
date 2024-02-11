@@ -19,3 +19,9 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+
+# Apache Etch and BimmerGestalt
+-keep class io.bimmergestalt.idriveconnectkit.rhmi.* { *; }
+-keep class io.bimmergestalt.idriveconnectkit.android.security.* { *; }
+-keep public class * extends org.apache.etch.bindings.java.transport.FormatFactory
