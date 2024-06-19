@@ -75,6 +75,6 @@ jobs:
             adb install -g 'external/iHeartRadio_for_Auto_v1.12.2_apkpure.com.apk'
             sleep 10
             adb logcat -c
-            (./gradlew connectedCheck || adb logcat -d; exit ${PIPESTATUS[0]})
+            bash -c './gradlew connectedCheck || adb logcat -d; exit ${PIPESTATUS[0]}'
       - name: Summarize test results
-        run: python3 -m pip install --user xunitparserx && python3 buildtools/xunit_summary.py build/outputs/androidTest-results/connected/flavors/*/*.xml
+        run: python3 -m pip install --user xunitparserx --break-system-packages && python3 buildtools/xunit_summary.py build/outputs/androidTest-results/connected/*/*.xml
