@@ -26,7 +26,7 @@ jobs:
         run: ./gradlew build --stacktrace
 
   instrumentedTest:
-    runs-on: macos-latest
+    runs-on: ubuntu-24.04
 
     strategy:
       fail-fast: false
@@ -54,10 +54,21 @@ jobs:
 
       - name: Build the project
         run: ./gradlew build --stacktrace
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Create directory for AVD
+        run: mkdir -p $HOME/.android/avd
+
       - name: Run Android Connected Tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api }}
+          arch: x86_64
           target: google_apis
           script: |
             adb install -g 'external/MINI_Connected_Classic_v1.1.3_(usa_160214_448)_apkpure.com.apk'
