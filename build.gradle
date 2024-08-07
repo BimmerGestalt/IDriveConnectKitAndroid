@@ -64,6 +64,9 @@ dependencies {
     implementation "org.bouncycastle:bcmail-jdk16:1.46"
 }
 
+group = 'io.bimmergestalt'
+version = '0.7'
+
 afterEvaluate {
     publishing {
         publications {
