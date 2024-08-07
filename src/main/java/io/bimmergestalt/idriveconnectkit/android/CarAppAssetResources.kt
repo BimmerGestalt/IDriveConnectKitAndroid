@@ -43,7 +43,7 @@ open class CarAppAssetResources(val context: Context, val name: String): CarAppR
 	}
 
 	fun getAppCertificateRaw(brand: String): InputStream? {
-		return loadFile("carapplications/$name/rhmi/${brand.toLowerCase()}/$name.p7b") ?:
+		return loadFile("carapplications/$name/rhmi/${brand.lowercase()}/$name.p7b") ?:
 		loadFile("carapplications/$name/$name.p7b")
 	}
 
@@ -54,18 +54,18 @@ open class CarAppAssetResources(val context: Context, val name: String): CarAppR
 	}
 
 	override fun getUiDescription(brand: String): InputStream? {
-		return loadFile("carapplications/$name/rhmi/${brand.toLowerCase()}/ui_description.xml") ?:
+		return loadFile("carapplications/$name/rhmi/${brand.lowercase()}/ui_description.xml") ?:
 		loadFile("carapplications/$name/rhmi/common/ui_description.xml") ?:
 		loadFile("carapplications/$name/rhmi/ui_description.xml")
 	}
 
 	override fun getImagesDB(brand: String): InputStream? {
-		return loadFile("carapplications/$name/rhmi/${brand.toLowerCase()}/images.zip") ?:
+		return loadFile("carapplications/$name/rhmi/${brand.lowercase()}/images.zip") ?:
 		loadFile("carapplications/$name/rhmi/common/images.zip")
 	}
 
 	override fun getTextsDB(brand: String): InputStream? {
-		return loadFile("carapplications/$name/rhmi/${brand.toLowerCase()}/texts.zip") ?:
+		return loadFile("carapplications/$name/rhmi/${brand.lowercase()}/texts.zip") ?:
 		loadFile("carapplications/$name/rhmi/common/texts.zip")
 	}
 }

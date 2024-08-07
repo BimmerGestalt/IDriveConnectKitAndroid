@@ -2,6 +2,7 @@ package io.bimmergestalt.idriveconnectkit.android
 
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import com.bmwgroup.connected.car.app.BrandType
 import java.lang.IllegalArgumentException
 
@@ -27,10 +28,18 @@ class CarAPIAppInfo(val id: String,
 					category = intent.getStringExtra("EXTRA_APPLICATION_CATEGORY") ?: throw IllegalArgumentException("Missing EXTRA_APPLICATION_CATEGORY"),
 					version = intent.getStringExtra("EXTRA_APPLICATION_VERSION") ?: throw IllegalArgumentException("Missing EXTRA_APPLICATION_VERSION"),
 					rhmiVersion = intent.getStringExtra("EXTRA_RHMI_VERSION"),
-					brandType = intent.getSerializableExtra("EXTRA_APPLICATION_BRAND") as? BrandType ?: throw IllegalArgumentException("Missing EXTRA_APPLICATION_BRAND"),
+					brandType = intent.getBrandTypeExtra("EXTRA_APPLICATION_BRAND") as? BrandType ?: throw IllegalArgumentException("Missing EXTRA_APPLICATION_BRAND"),
 					connectIntentName = intent.getStringExtra("EXTRA_APPLICATION_CONNECT_RECEIVER_ACTION"),
 					disconnectIntentName = intent.getStringExtra("EXTRA_APPLICATION_DISCONNECT_RECEIVER_ACTION"),
 					appIcon = intent.getByteArrayExtra("EXTRA_APPLICATION_APP_ICON"))
+		}
+
+		fun Intent.getBrandTypeExtra(key: String): BrandType? {
+			return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+				this.getSerializableExtra(key, BrandType::class.java)
+			} else {
+				this.getSerializableExtra(key) as? BrandType
+			}
 		}
 	}
 

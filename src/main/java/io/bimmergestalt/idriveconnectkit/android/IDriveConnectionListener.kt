@@ -1,9 +1,11 @@
 package io.bimmergestalt.idriveconnectkit.android
 
+import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Build
 import android.util.Log
 import java.lang.IllegalArgumentException
 import java.util.*
@@ -91,9 +93,19 @@ class IDriveConnectionReceiver: IDriveConnectionListener, BroadcastReceiver() {
 			}
 		}
 
+		@SuppressLint("UnspecifiedRegisterReceiverFlag")
 		fun subscribe(context: Context) {
 			if (!subscribed) {
-				context.registerReceiver(this, IntentFilter(INTENT_BCL_REPORT))
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+					val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+						Context.RECEIVER_EXPORTED
+					} else {
+						0
+					}
+					context.registerReceiver(this, IntentFilter(INTENT_BCL_REPORT), flags)
+				} else {
+					context.registerReceiver(this, IntentFilter(INTENT_BCL_REPORT))
+				}
 				subscribed = true
 			}
 		}
@@ -137,10 +149,21 @@ class IDriveConnectionReceiver: IDriveConnectionListener, BroadcastReceiver() {
 		}
 	}
 
+	@SuppressLint("UnspecifiedRegisterReceiverFlag")
 	fun subscribe(context: Context) {
 		if (!subscribed) {
-			context.registerReceiver(this, IntentFilter(INTENT_ATTACHED))
-			context.registerReceiver(this, IntentFilter(INTENT_DETACHED))
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+				val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+					Context.RECEIVER_EXPORTED
+				} else {
+					0
+				}
+				context.registerReceiver(this, IntentFilter(INTENT_ATTACHED), flags)
+				context.registerReceiver(this, IntentFilter(INTENT_DETACHED), flags)
+			} else {
+				context.registerReceiver(this, IntentFilter(INTENT_ATTACHED))
+				context.registerReceiver(this, IntentFilter(INTENT_DETACHED))
+			}
 			subscribed = true
 		}
 		bclListener.subscribe(context)
