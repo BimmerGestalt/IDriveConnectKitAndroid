@@ -5,7 +5,9 @@ import org.bouncycastle.asn1.ASN1ObjectIdentifier
 import org.bouncycastle.asn1.x509.CertificateList
 import org.bouncycastle.cert.X509CRLHolder
 import org.bouncycastle.cert.X509CertificateHolder
+import org.bouncycastle.cms.CMSAbsentContent
 import org.bouncycastle.cms.CMSSignedData
+import org.bouncycastle.cms.CMSSignedDataGenerator
 import org.bouncycastle.openssl.PEMReader
 import org.bouncycastle.openssl.PEMWriter
 import org.bouncycastle.util.CollectionStore
@@ -15,6 +17,7 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStreamReader
 import java.io.OutputStreamWriter
+import java.security.cert.Certificate
 import java.util.*
 
 /**
@@ -74,6 +77,20 @@ object CertMangling {
 		pemwriter.writeObject(PemObject("PKCS7", cert.encoded))
 		pemwriter.close()
 		return pem.toByteArray()
+	}
+
+	/**
+	 * Outputs the given List<Certificate> as a p7b PEM string
+	 */
+	fun outputCert(certs: List<Certificate>): ByteArray {
+		val bcCerts = certs.map {
+			X509CertificateHolder(it.encoded)
+		}
+		val certStore = CollectionStore(bcCerts)
+		val generator = CMSSignedDataGenerator()
+		generator.addCertificates(certStore)
+		val certCMS = generator.generate(CMSAbsentContent())
+		return outputCert(certCMS)
 	}
 
 	/**
