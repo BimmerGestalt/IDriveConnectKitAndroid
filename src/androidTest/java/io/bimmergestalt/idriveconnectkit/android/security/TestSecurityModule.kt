@@ -3,7 +3,6 @@ package io.bimmergestalt.idriveconnectkit.android.security
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
 import junit.framework.Assert
-import io.bimmergestalt.idriveconnectkit.android.CertMangling
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith

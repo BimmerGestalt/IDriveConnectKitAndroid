@@ -3,15 +3,11 @@ package io.bimmergestalt.idriveconnectkit.android.security
 import android.net.Uri
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
-import io.bimmergestalt.idriveconnectkit.android.CertMangling
 import org.awaitility.Awaitility.await
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.io.InputStream
 import java.util.*
-import java.util.concurrent.Semaphore
-import java.util.concurrent.TimeUnit
 
 @RunWith(AndroidJUnit4::class)
 class TestSecurityAccess {

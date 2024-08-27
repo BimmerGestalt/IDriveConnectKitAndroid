@@ -1,4 +1,4 @@
-package io.bimmergestalt.idriveconnectkit.android
+package io.bimmergestalt.idriveconnectkit.android.security
 
 import android.util.Log
 import org.bouncycastle.asn1.ASN1ObjectIdentifier
