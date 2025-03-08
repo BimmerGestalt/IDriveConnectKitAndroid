@@ -12,7 +12,10 @@ class CDSLiveDataProvider(
 	private val contentResolver: ContentResolver
 ) {
 	operator fun get(propertyId: Int): CDSLiveData {
-		return CDSLiveData(contentResolver, propertyId)
+		return CDSLiveData(contentResolver, propertyId = propertyId)
+	}
+	operator fun get(propertyName: String): CDSLiveData {
+		return CDSLiveData(contentResolver, propertyName = propertyName)
 	}
 }
 
@@ -22,9 +25,17 @@ class CDSLiveDataProvider(
  */
 class CDSLiveData(
 	private val contentResolver: ContentResolver,
-	propertyId: Int
+	propertyId: Int? = null,
+	propertyName: String? = null,
 ): LiveData<Map<String, Any>>() {
-	private val uri = Uri.parse("content://io.bimmergestalt.cardata.provider/cds/$propertyId")
+	private val uri = if (propertyId != null) {
+		Uri.parse("content://io.bimmergestalt.cardata.provider/cds/$propertyId")
+	} else if (propertyName != null) {
+		Uri.parse("content://io.bimmergestalt.cardata.provider/cds/$propertyName")
+	} else {
+		throw IllegalArgumentException("Must provide propertyId or propertyName")
+	}
+
 	private val observer = GenericContentObserver(contentResolver, uri) {
 		// Notify LiveData listeners an event has happened
 		this.postValue(getContentProviderValue())
